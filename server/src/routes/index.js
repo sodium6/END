@@ -1,4 +1,3 @@
-const companyRoute = require('./companyRoute.js');
-const customerRoute = require('./customerRoute.js');
+const authRoute = require('./authRoute.js');
 
-module.exports = [companyRoute, customerRoute];
+module.exports = [ authRoute];
