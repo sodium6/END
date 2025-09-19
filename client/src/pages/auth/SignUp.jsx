@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { registerUser } from "../../services/authApi"; // ✅ import service
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -51,16 +50,26 @@ export default function SignUp() {
     const payload = {
       ...formData,
       st_id: `${formData.st_id_main}-${formData.st_id_check}`,
-      st_id_canonical: `${formData.st_id_main}${formData.st_id_check}`, // ✅ ส่งรวมด้วย
     };
 
     try {
-      const result = await registerUser(payload); // ✅ ใช้ service
+      const res = await fetch("../../api/register/register.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(result.message || `สมัครสมาชิกไม่สำเร็จ (HTTP ${res.status})`);
+        return;
+      }
+
       alert(result.message || "สมัครสมาชิกสำเร็จ");
       navigate("/sign-in");
     } catch (err) {
-      console.error("Register error:", err);
-      alert(err.response?.data?.message || "เกิดข้อผิดพลาดในการสมัครสมาชิก");
+      console.error(err);
+      alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
     }
   };
 
@@ -73,9 +82,9 @@ export default function SignUp() {
         {/* Logo */}
         <div className="mb-10 flex justify-center">
           <img
-            src="../../public/logo.png"
+            src="../images/logo.png"
             alt="RMUTK Logo"
-            className="w-full h-full object-contain drop-shadow-lg"
+            className="w-20 h-20 object-contain drop-shadow-lg"
           />
         </div>
 
