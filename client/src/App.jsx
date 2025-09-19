@@ -4,7 +4,8 @@ import { Route, Routes, BrowserRouter } from 'react-router-dom';
 
 import SignIn from './pages/auth/Signin';
 import SignUp from './pages/auth/SignUp';
-
+import Dashboard from './pages/user/dashboard/dashboard';
+import Portfolio from './pages/user/portfolio/portfolio';
 
 function App() {
   return (
@@ -12,12 +13,12 @@ function App() {
       <Routes>
         {/* <Route element={<PrivateRoute />}> */}
         <Route element={<IndexLayout />}>
-
+        <Route path="/dashboard" element={<Dashboard />} />     
+        <Route path="/my-portfolio" element={<Portfolio />} />     
         </Route>
 
-          <Route path="/sign-in" element={<SignIn />} />
+          <Route path="/" element={<SignIn />} />
           <Route path="/sign-up" element={<SignUp />} />
-     
         {/* </Route> */}
       </Routes>
     </BrowserRouter>

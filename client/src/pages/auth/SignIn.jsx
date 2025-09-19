@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../../services/authApi";
-
+import Swal from "sweetalert2";
 export default function SignIn() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -21,12 +21,25 @@ export default function SignIn() {
     try {
       // เรียก API ผ่าน authApi.js
       const result = await loginUser(formData);
-
-      alert("ยินดีต้อนรับ " + (result.user?.name || "ผู้ใช้"));
-      navigate("/dashboard"); // ✅ เปลี่ยนไปหน้า dashboard (React Router)
+  
+      await Swal.fire({
+        icon: "success",
+        title: "เข้าสู่ระบบสำเร็จ",
+        text: "ยินดีต้อนรับ " + (result.user?.name || "ผู้ใช้"),
+        confirmButtonText: "ตกลง",
+        confirmButtonColor: "#2d5a3d", // เขียว primary ของคุณ
+      });
+  
+      navigate("/dashboard"); // ✅ เปลี่ยนไปหน้า dashboard
     } catch (err) {
       console.error("Login error:", err);
-      alert(err.response?.data?.message || "เข้าสู่ระบบไม่สำเร็จ");
+      Swal.fire({
+        icon: "error",
+        title: "เข้าสู่ระบบไม่สำเร็จ",
+        text: err.response?.data?.message || "โปรดลองอีกครั้ง",
+        confirmButtonText: "ตกลง",
+        confirmButtonColor: "#ef4444", // แดง
+      });
     }
   };
 
@@ -42,7 +55,7 @@ export default function SignIn() {
         {/* Logo */}
         <div className="mb-12 flex items-center justify-center">
           <img
-            src="../../public/logo.png"
+            src="/logo.png"
             alt="RMUTK Logo"
             className="w-full h-full object-contain drop-shadow-lg"
           />
