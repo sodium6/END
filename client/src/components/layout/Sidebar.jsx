@@ -1,5 +1,6 @@
 // src/components/layout/Sidebar.jsx
 import React from "react";
+import { Link } from "react-router-dom";
 
 export default function Sidebar({
   isMobile,
@@ -142,6 +143,34 @@ export default function Sidebar({
                 </button>
               </li>
             ))}
+
+            <li>
+              <Link
+                to="/public-relations"
+                onClick={() => setActiveItem("public-relations")}
+                className={
+                  "w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-md text-left transition-all duration-200 group " +
+                  (activeItem === "public-relations"
+                    ? "bg-emerald-50 text-emerald-700"
+                    : "text-slate-600 hover:bg-slate-50")
+                }
+                title={showText ? undefined : "ประชาสัมพันธ์"}
+              >
+                <div className="flex items-center justify-center min-w-[24px]">
+                  {/* Megaphone Icon */}
+                  <svg
+                    className={"h-4.5 w-4.5 " + (activeItem === "public-relations" ? "text-emerald-600" : "text-slate-500")}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.148-6.362a1.76 1.76 0 01-.592-3.417V5.882a1.76 1.76 0 013.417-.592l2.148 6.362a1.76 1.76 0 01.592 3.417z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.5 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.148-6.362a1.76 1.76 0 01-.592-3.417V5.882a1.76 1.76 0 013.417-.592l2.148 6.362a1.76 1.76 0 01.592 3.417z" />
+                  </svg>
+                </div>
+                {showText && <span className="text-sm">ประชาสัมพันธ์</span>}
+              </Link>
+            </li>
 
             {/* Static link: portfolio */}
             <li>

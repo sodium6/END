@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
 
 // คอมโพเนนต์ย่อยอยู่ในโฟลเดอร์เดียวกันกับไฟล์นี้
-import StatsOverview from "./StatsOverview";
-import SubjectsProgress from "./SubjectsProgress";
-import Activities from "./Activities";
-import Notifications from "./Notifications";
-import QuickActions from "./QuickActions";
+import StatsOverview from "../../components/dashboard/StatsOverview";
+import SubjectsProgress from "../../components/dashboard/SubjectsProgress";
+import Activities from "../../components/dashboard/Activities";
+import Notifications from "../../components/dashboard/Notifications";
+import QuickActions from "../../components/dashboard/QuickActions";
 
 export default function StudentPortfolioDashboard() {
   const [now, setNow] = useState(new Date());

@@ -5,6 +5,7 @@ import Profile from "./pages/user/user";
 import SignIn from "./pages/auth/Signin";
 import SignUp from "./pages/auth/SignUp";
 import StudentPortfolioDashboard from "./pages/dashboard/dashboard";
+import PublicRelations from "./pages/public_relations/public_relations";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="/import-data" element={<div />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/help" element={<div />} />
+          <Route path="/public-relations" element={<PublicRelations />} />
         </Route>
 
         <Route path="/sign-in" element={<SignIn />} />
