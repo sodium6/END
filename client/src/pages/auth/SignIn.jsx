@@ -1,6 +1,9 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { loginUser } from "../../services/authApi";
+import Swal from "sweetalert2";
 export default function SignIn() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     st_id_canonical: "",
     password: "",
@@ -16,36 +19,43 @@ export default function SignIn() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("../../api/login/login.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+      // เรียก API ผ่าน authApi.js
+      const result = await loginUser(formData);
+  
+      await Swal.fire({
+        icon: "success",
+        title: "เข้าสู่ระบบสำเร็จ",
+        text: "ยินดีต้อนรับ " + (result.user?.name || "ผู้ใช้"),
+        confirmButtonText: "ตกลง",
+        confirmButtonColor: "#2d5a3d", // เขียว primary ของคุณ
       });
-
-      const result = await res.json();
-      if (!res.ok) {
-        alert(result.message || "เข้าสู่ระบบไม่สำเร็จ");
-        return;
-      }
-
-      alert("ยินดีต้อนรับ " + (result.user?.name || "ผู้ใช้"));
-      window.location.href = "../dashboard/dashboard.html";
+  
+      navigate("/dashboard"); // ✅ เปลี่ยนไปหน้า dashboard
     } catch (err) {
       console.error("Login error:", err);
-      alert("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้");
+      Swal.fire({
+        icon: "error",
+        title: "เข้าสู่ระบบไม่สำเร็จ",
+        text: err.response?.data?.message || "โปรดลองอีกครั้ง",
+        confirmButtonText: "ตกลง",
+        confirmButtonColor: "#ef4444", // แดง
+      });
     }
   };
 
   return (
-    <div className="font-sarabun min-h-screen flex justify-center items-center p-5 
-        bg-gradient-to-br from-green-950 via-green-800 to-green-700">
-      <div className="bg-white/20 backdrop-blur-lg rounded-3xl 
-                  p-12 w-full max-w-md shadow-2xl text-center border border-white/20">
-        
+    <div
+      className="font-sarabun min-h-screen flex justify-center items-center p-5 
+        bg-gradient-to-br from-green-950 via-green-800 to-green-700"
+    >
+      <div
+        className="bg-white/20 backdrop-blur-lg rounded-3xl 
+                  p-12 w-full max-w-md shadow-2xl text-center border border-white/20"
+      >
         {/* Logo */}
         <div className="mb-12 flex items-center justify-center">
           <img
-            src="../images/logo.png"
+            src="/logo.png"
             alt="RMUTK Logo"
             className="w-full h-full object-contain drop-shadow-lg"
           />
@@ -120,12 +130,12 @@ export default function SignIn() {
         {/* Footer */}
         <div className="text-white/80 text-sm text-center mt-5 pt-5 border-t border-white/30">
           ยังไม่มีบัญชี?{" "}
-          <a
-            href="../register/register.html"
+          <Link
+            to="/sign-up"
             className="text-green-light font-medium hover:text-green-300 hover:underline"
           >
             สมัครสมาชิก
-          </a>
+          </Link>
           <br />
           <span className="block mt-2">
             สำหรับนักศึกษาและศิษย์เก่าของมหาวิทยาลัยเทคโนโลยี่ราชมงคลเท่านั้น

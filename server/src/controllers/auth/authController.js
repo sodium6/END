@@ -1,7 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { pool } = require("../../db/database.js");
-
+const pool = require("../../db/database");
 // ================= Register =================
 const register = async (req, res) => {
   try {
@@ -104,5 +103,67 @@ const login = async (req, res) => {
 };
 
 
+// ================= Logout =================
+const logout = async (req, res) => {
+  try {
+    // 🔹 ถ้าใช้ cookie session → เคลียร์ cookie
+    res.clearCookie("token");
 
-module.exports = { register, login };
+    // 🔹 ถ้า client เก็บ token ไว้เอง → client ต้องลบเอง
+    res.json({ message: "ออกจากระบบสำเร็จ" });
+  } catch (err) {
+    console.error("Logout error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// ================= Profile =================
+const profile = async (req, res) => {
+  try {
+    // decode token จาก Authorization Header
+    const authHeader = req.headers["authorization"];
+    if (!authHeader) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const token = authHeader.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+
+    const [rows] = await pool.query(
+      "SELECT id, title, first_name_th, last_name_th, st_id, st_id_canonical, email FROM users WHERE id = ?",
+      [decoded.id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "ไม่พบบัญชีผู้ใช้" });
+    }
+
+    const user = rows[0];
+    const fullName = `${user.title} ${user.first_name_th} ${user.last_name_th}`;
+    res.json({
+      authenticated: true,
+      user: {
+        id: user.id,
+        name: fullName,
+        st_id: user.st_id,
+        st_id_canonical: user.st_id_canonical,
+        email: user.email,
+      },
+    });
+  } catch (err) {
+    console.error("Profile error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+module.exports = { register, login , logout, profile };

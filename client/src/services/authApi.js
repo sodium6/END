@@ -17,11 +17,24 @@ export const loginUser = async (data) => {
 
 // ดึงข้อมูลโปรไฟล์ (ต้องมี token)
 export const getProfile = async () => {
-  const res = await api.get("/auth/profile"); // สมมติเรามี endpoint profile
-  return res.data;
-};
-
-// ออกจากระบบ
-export const logoutUser = () => {
-  localStorage.removeItem("token");
-};
+    const token = localStorage.getItem("token");
+    const res = await api.get("/auth/profile", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+  };
+  
+  // ออกจากระบบ
+  export const logoutUser = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      await api.post(
+        "/auth/logout",
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (err) {
+      console.warn("logout API failed:", err);
+    }
+    localStorage.removeItem("token");
+  };

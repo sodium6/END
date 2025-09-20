@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { registerUser } from "../../services/authApi"; // ✅ import service
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -50,26 +51,16 @@ export default function SignUp() {
     const payload = {
       ...formData,
       st_id: `${formData.st_id_main}-${formData.st_id_check}`,
+      st_id_canonical: `${formData.st_id_main}${formData.st_id_check}`, // ✅ ส่งรวมด้วย
     };
 
     try {
-      const res = await fetch("../../api/register/register.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const result = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        alert(result.message || `สมัครสมาชิกไม่สำเร็จ (HTTP ${res.status})`);
-        return;
-      }
-
+      const result = await registerUser(payload); // ✅ ใช้ service
       alert(result.message || "สมัครสมาชิกสำเร็จ");
-      navigate("/sign-in");
+      navigate("/");
     } catch (err) {
-      console.error(err);
-      alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+      console.error("Register error:", err);
+      alert(err.response?.data?.message || "เกิดข้อผิดพลาดในการสมัครสมาชิก");
     }
   };
 
@@ -82,9 +73,9 @@ export default function SignUp() {
         {/* Logo */}
         <div className="mb-10 flex justify-center">
           <img
-            src="../images/logo.png"
+            src="/logo.png"
             alt="RMUTK Logo"
-            className="w-20 h-20 object-contain drop-shadow-lg"
+            className="w-full h-full object-contain drop-shadow-lg"
           />
         </div>
 
@@ -278,7 +269,7 @@ export default function SignUp() {
               สมัครสมาชิก
             </button>
             <Link
-              to="/sign-in"
+              to="/"
               className="flex-1 py-3 px-5 border-2 border-white/40 rounded-lg font-medium 
                          text-white hover:bg-white/10 hover:border-white hover:-translate-y-0.5 transition text-center"
             >
@@ -291,7 +282,7 @@ export default function SignUp() {
         <div className="text-white/80 text-sm text-center mt-5 pt-5 border-t border-white/30">
           มีบัญชีแล้ว?{" "}
           <Link
-            to="/sign-in"
+            to="/"
             className="text-green-light font-medium hover:text-green-300 hover:underline"
           >
             เข้าสู่ระบบ

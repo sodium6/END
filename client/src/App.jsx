@@ -1,26 +1,24 @@
-import { Route, Routes, BrowserRouter } from "react-router-dom";
+import IndexLayout from './layouts/IndexLayout';
+import { Route, Routes, BrowserRouter } from 'react-router-dom';
 
-import IndexLayout from "./layouts/IndexLayout";
-import Profile from "./pages/user/user";
-import SignIn from "./pages/auth/Signin";
-import SignUp from "./pages/auth/SignUp";
-import StudentPortfolioDashboard from "./pages/dashboard/dashboard";
-import PublicRelations from "./pages/public_relations/public_relations";
+import SignIn from './pages/auth/Signin';
+import SignUp from './pages/auth/SignUp';
+import Dashboard from './pages/user/dashboard/dashboard';
+import Portfolio from './pages/user/portfolio/portfolio';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* <Route element={<PrivateRoute />}> */}
         <Route element={<IndexLayout />}>
-          <Route path="/dashboard.jsx" element={<StudentPortfolioDashboard />} />
-          <Route path="/import-data" element={<div />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/help" element={<div />} />
-          <Route path="/public-relations" element={<PublicRelations />} />
+        <Route path="/dashboard" element={<Dashboard />} />     
+        <Route path="/my-portfolio" element={<Portfolio />} />     
         </Route>
 
-        <Route path="/sign-in" element={<SignIn />} />
-        <Route path="/sign-up" element={<SignUp />} />
+          <Route path="/" element={<SignIn />} />
+          <Route path="/sign-up" element={<SignUp />} />
+        {/* </Route> */}
       </Routes>
     </BrowserRouter>
   );
