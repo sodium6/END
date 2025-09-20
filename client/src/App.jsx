@@ -5,6 +5,7 @@ import SignIn from './pages/auth/Signin';
 import SignUp from './pages/auth/SignUp';
 import Dashboard from './pages/user/dashboard/dashboard';
 import Portfolio from './pages/user/portfolio/portfolio';
+import PublicRelations from './pages/user/public_relations/public_relations';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route element={<IndexLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />     
         <Route path="/my-portfolio" element={<Portfolio />} />     
+        <Route path="/public-relations" element={<PublicRelations />} />
         </Route>
 
           <Route path="/" element={<SignIn />} />

@@ -19,11 +19,19 @@ const register = async (req, res) => {
     } = req.body;
 
     // ตรวจสอบ email ซ้ำ
-    const [exist] = await pool.query("SELECT id FROM users WHERE email = ?", [
+    const [existEmail] = await pool.query("SELECT id FROM users WHERE email = ?", [
       email,
     ]);
-    if (exist.length > 0) {
+    if (existEmail.length > 0) {
       return res.status(400).json({ message: "อีเมลนี้ถูกใช้แล้ว" });
+    }
+
+    // ตรวจสอบ st_id_canonical ซ้ำ
+    const [existStid] = await pool.query("SELECT id FROM users WHERE st_id_canonical = ?", [
+      st_id_canonical,
+    ]);
+    if (existStid.length > 0) {
+      return res.status(400).json({ message: "รหัสนักศึกษานี้ถูกใช้แล้ว" });
     }
 
     // Hash password
