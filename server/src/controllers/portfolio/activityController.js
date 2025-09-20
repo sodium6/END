@@ -3,15 +3,34 @@ const pool = require("../../db/database");
 const getActivities = async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "SELECT * FROM activities WHERE user_id=?",
+      `
+      SELECT 
+        id,
+        name,
+        type,
+        CASE 
+          WHEN start_date IS NULL THEN NULL
+          ELSE DATE_FORMAT(start_date, '%Y-%m-%d')
+        END AS startDate,
+        CASE 
+          WHEN end_date IS NULL THEN NULL
+          ELSE DATE_FORMAT(end_date, '%Y-%m-%d')
+        END AS endDate,
+        description
+      FROM activities
+      WHERE user_id = ?
+      `,
       [req.params.userId]
     );
     res.json(rows || []);
   } catch (err) {
-    console.error("getActivities error:", err);
-    res.status(500).json({ message: "Server error" });
+    console.error('getActivities error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
+
+
+
 
 const addActivity = async (req, res) => {
   try {

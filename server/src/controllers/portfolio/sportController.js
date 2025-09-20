@@ -1,12 +1,39 @@
 const pool = require("../../db/database");
 
 const getSports = async (req, res) => {
-  const [rows] = await pool.query(
-    "SELECT * FROM sports WHERE user_id=?",
-    [req.params.userId]
-  );
-  res.json(rows);
+  try {
+    const [rows] = await pool.query(
+      `
+      SELECT
+        id,
+        user_id,
+        name,
+        type,
+        CASE
+          WHEN \`date\` IS NULL THEN NULL
+          ELSE DATE_FORMAT(\`date\`, '%Y-%m-%d')
+        END AS date,
+        result,
+        description,
+        created_at
+      FROM sports
+      WHERE user_id = ?
+      ORDER BY \`date\` DESC, id DESC
+      `,
+      [req.params.userId]
+    );
+
+    res.json(rows || []);
+  } catch (err) {
+    console.error("getSports error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
 };
+
+
+
+
+
 
 const addSport = async (req, res) => {
   const { name, type, date, result, description } = req.body;

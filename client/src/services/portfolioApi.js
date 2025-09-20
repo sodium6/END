@@ -32,6 +32,44 @@ export const deleteWork = async (id) => {
   return res.data;
 };
 
+// services/portfolioApi.js   
+export const uploadWorkFiles = async (userId, workId, fileListOrArray) => {
+  const fd = new FormData();
+
+  // กัน undefined/null
+  const filesArr = Array.isArray(fileListOrArray)
+    ? fileListOrArray
+    : Array.from(fileListOrArray || []);
+
+  if (!filesArr.length) {
+    throw new Error("No files to upload");
+  }
+
+  for (const f of filesArr) {
+    fd.append("files", f);
+  }
+
+  const res = await api.post(
+    `/portfolio/work/${userId}/${workId}/files`,
+    fd,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+  return res.data; // { files: [...] }
+};
+
+export const listWorkFiles = async (userId, workId) => {
+  const res = await api.get(`/portfolio/work/${userId}/${workId}/files`);
+  return res.data; // [{id,wkId,userId,filePath},...]
+};
+
+export const deleteWorkFile = async (fileId) => {
+  const res = await api.delete(`/portfolio/work/files/${fileId}`);
+  return res.data;
+};
+
+
+
+
 // ---------------- ACTIVITIES ----------------
 export const getActivities = async (userId) => {
   const res = await api.get(`/portfolio/activities/${userId}`);
