@@ -6,6 +6,8 @@ import SignUp from './pages/auth/SignUp';
 import Dashboard from './pages/user/dashboard/dashboard';
 import Portfolio from './pages/user/portfolio/portfolio';
 import PublicRelations from './pages/user/public_relations/public_relations';
+import TemplatePort from './pages/user/template/templatePort';    
+import PortfolioView from './pages/user/template/portfolioView';
 
 function App() {
   return (
@@ -16,6 +18,8 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />     
         <Route path="/my-portfolio" element={<Portfolio />} />     
         <Route path="/public-relations" element={<PublicRelations />} />
+        <Route path="/template" element={<TemplatePort />} />
+        <Route path="/template/view" element={<PortfolioView />} />
         </Route>
 
           <Route path="/" element={<SignIn />} />

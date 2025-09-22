@@ -1,8 +1,8 @@
 // src/controllers/portfolio/workController.js
 const path = require("path");
 const fs = require("fs");
-const pool = require("../../db/database");
-const { uploadDir } = require("../../middlewares/uploadPortfolioFiles");
+const pool = require("../../../db/database");
+const { uploadDir } = require("../../../middlewares/uploadPortfolioFiles");
 
 // ---------- WORK ----------
 const getWorkByUser = async (req, res) => {

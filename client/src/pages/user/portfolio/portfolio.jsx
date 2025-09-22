@@ -18,6 +18,9 @@ import {
     uploadWorkFiles,
     listWorkFiles,
     deleteWorkFile,
+    uploadActivityFiles,
+    listActivityFiles,
+    deleteActivityFile,
 } from "../../../services/portfolioApi";
 import { jwtDecode } from "jwt-decode";
 import Swal from 'sweetalert2';
@@ -60,21 +63,21 @@ const Portfolio = () => {
     const [previewFile, setPreviewFile] = useState(null);
     const [showPreview, setShowPreview] = useState(false);
     // ---------- utils ----------
-     const previewFileHandler = (f) => {
-           if (!f) return;
-           const isNativeFile = typeof File !== "undefined" && f instanceof File;
-           const url = isNativeFile
-             ? URL.createObjectURL(f)
-             : toAbsUrl(f.url || f.filePath || f.file_path);
-           const name =
-             f.name ||
-             f.originalName || f.original_name ||
-             ((f.filePath || f.file_path || "").split("/").pop() || "file");
-           const size = typeof f.size === "number" ? f.size : (f.sizeBytes || f.size_bytes || 0);
-           const type = f.type || (name.includes(".") ? name.split(".").pop().toLowerCase() : "");
-           setPreviewFile({ name, url, type, size });
-           setShowPreview(true);
-         };
+    const previewFileHandler = (f) => {
+        if (!f) return;
+        const isNativeFile = typeof File !== "undefined" && f instanceof File;
+        const url = isNativeFile
+            ? URL.createObjectURL(f)
+            : toAbsUrl(f.url || f.filePath || f.file_path);
+        const name =
+            f.name ||
+            f.originalName || f.original_name ||
+            ((f.filePath || f.file_path || "").split("/").pop() || "file");
+        const size = typeof f.size === "number" ? f.size : (f.sizeBytes || f.size_bytes || 0);
+        const type = f.type || (name.includes(".") ? name.split(".").pop().toLowerCase() : "");
+        setPreviewFile({ name, url, type, size });
+        setShowPreview(true);
+    };
 
     const closePreview = () => {
         if (previewFile && previewFile.url && previewFile.url.startsWith('blob:')) {
@@ -97,21 +100,21 @@ const Portfolio = () => {
     const toAbsUrl = (p) => {
         if (!p) return "";
         const s = String(p);
-      
+
         // ต่อให้เป็น absolute หรือ relative ก็แปลงเป็น absolute ก่อน
         const abs = s.startsWith("http")
-          ? s
-          : `${API_BASE}${s.startsWith("/") ? s : `/uploads/portfolio_image/${s}`}`;
-      
+            ? s
+            : `${API_BASE}${s.startsWith("/") ? s : `/uploads/portfolio_image/${s}`}`;
+
         // ถ้าเจอรูปแบบ %HH แปลว่า "ถูก encode มาแล้ว" → ห้าม encode ซ้ำ
         const alreadyEncoded = /%[0-9A-Fa-f]{2}/.test(abs);
-      
+
         // ถ้ายังไม่ encode และมีอักขระ non-ASCII (เช่น ภาษาไทย/ช่องว่าง) → ค่อย encodeURI
         if (!alreadyEncoded && /[^\x20-\x7E]/.test(abs)) {
-          return encodeURI(abs);
+            return encodeURI(abs);
         }
         return abs;
-      };
+    };
 
     const isDbMeta = (f) => f && typeof f.size !== "number";
     const fileLabel = (f) =>
@@ -198,6 +201,9 @@ const Portfolio = () => {
         setWorkExperiences((prev) => prev.map((w) => (w.id === id ? { ...w, [field]: value } : w)));
     };
 
+
+
+    // ---------- add/remove/update rows (Activity  ) ----------
     const addActivityRow = () => {
         setActivities((prev) => [
             ...prev,
@@ -206,6 +212,81 @@ const Portfolio = () => {
     };
 
 
+    // อัปโหลดรูปกิจกรรม (รับเฉพาะภาพ)
+    const handleActivityFileUpload = async (activityId, files) => {
+        if (!files || !files.length) return;
+
+        const valid = Array.from(files).filter((file) => {
+            const okType = file.type?.startsWith("image/");
+            const okSize = file.size <= 10 * 1024 * 1024;
+            if (!okType) alert(`ไฟล์ ${file.name} ไม่ใช่รูปภาพ`);
+            if (!okSize) alert(`ไฟล์ ${file.name} เกิน 10MB`);
+            return okType && okSize;
+        });
+        if (!valid.length) return;
+
+        // ถ้ายังเป็นแถวชั่วคราว → เก็บ File object ไว้ใน state ก่อน
+        if (isTempId(activityId)) {
+            setActivities((prev) =>
+                prev.map((a) => a.id === activityId ? { ...a, photos: [...(a.photos || []), ...valid] } : a)
+            );
+            return;
+        }
+
+        // มี id จริง → ยิง API อัปโหลด
+        try {
+            // TODO: ใช้ฟังก์ชันจริงของคุณ
+            const { files: uploaded = [] } = await uploadActivityFiles(userId, activityId, valid);
+
+            const normalized = uploaded.map((f) => ({
+                id: f.id,
+                name: f.originalName || decodeURIComponent((f.filePath || "").split("/").pop()),
+                size: f.sizeBytes ?? 0,
+                filePath: f.filePath,
+                url: toAbsUrl(f.filePath),
+            }));
+
+            setActivities((prev) =>
+                prev.map((a) =>
+                    a.id === activityId
+                        ? { ...a, photos: [...(a.photos || []).filter((x) => !x?.lastModified), ...normalized] }
+                        : a
+                )
+            );
+        } catch (err) {
+            console.error("uploadActivityFiles error:", err);
+            alert("อัปโหลดรูปกิจกรรมไม่สำเร็จ");
+        }
+    };
+
+    // ลบรูปกิจกรรม
+    const removeActivityFile = async (activityId, idx) => {
+        const prev = activities;
+        const act = activities.find(a => a.id === activityId);
+        const target = act?.photos?.[idx];
+      
+        // ตัดออกจาก UI ก่อน (optimistic)
+        setActivities(state =>
+          state.map(a =>
+            a.id === activityId
+              ? { ...a, photos: (a.photos || []).filter((_, i) => i !== idx) }
+              : a
+          )
+        );
+      
+        // ถ้าเป็นรูปที่เพิ่งเลือก (File object) ยังไม่มี id -> ไม่ต้องยิง API
+        if (!target || !target.id) return;
+      
+        try {
+          await deleteActivityFile(userId, target.id);   // 👈 ต้องส่ง userId ด้วย
+        } catch (err) {
+          console.error("deleteActivityFile error:", err);
+          // rollback
+          setActivities(prev);
+          alert("ลบรูปกิจกรรมไม่สำเร็จ");
+        }
+      };
+      
 
 
     // ปุ่มลบกิจกรรม
@@ -215,7 +296,8 @@ const Portfolio = () => {
 
         const prev = activities; // เก็บ state เดิมไว้เผื่อ rollback
         // ตัดออกจาก UI ก่อน (optimistic)
-        setActivities((p) => p.filter((a) => a.id !== id));
+        // setActivities((p) => p.filter((a) => a.id !== id));
+        setActivities((Array.isArray(acts) ? acts : []).map(a => ({ ...a, photos: a.photos || [] })));
 
         // ถ้าเป็นแถวชั่วคราว (ยังไม่บันทึก DB) ไม่ต้องยิง API
         if (isTempId(id)) {
@@ -440,82 +522,189 @@ const Portfolio = () => {
     };
 
 
+    // // ---------- load initial data ----------
+    // useEffect(() => {
+    //     (async () => {
+    //       try {
+    //         // -------- user --------
+    //         try {
+    //           const user = await getUser(userId);
+    //           setPersonalInfo((prev) => ({ ...prev, ...(user || {}) }));
+    //         } catch (e) {
+    //           console.warn("getUser not found, keep defaults");
+    //         }
+
+    //         // -------- work + files --------
+    //         try {
+    //           const works = await getWork(userId);
+
+    //           const worksWithFiles = await Promise.all(
+    //             (Array.isArray(works) ? works : []).map(async (w) => {
+    //               let files = [];
+    //               try {
+    //                 const res = await listWorkFiles(userId, w.id);
+    //                 files = (res || []).map((f) => ({
+    //                   id: f.id,
+    //                   name:
+    //                     f.originalName ||
+    //                     decodeURIComponent((f.filePath || "").split("/").pop()),
+    //                   size: f.sizeBytes ?? 0,
+    //                   filePath: f.filePath,
+    //                   url: toAbsUrl(f.filePath), // เสิร์ฟด้วย express.static("/uploads", ...)
+    //                 }));
+    //               } catch (e) {
+    //                 // เงียบไว้ถ้าดึงไฟล์พลาด
+    //               }
+
+    //               return {
+    //                 id: w.id,
+    //                 jobTitle: w.job_title ?? w.jobTitle ?? "",
+    //                 startDate: w.start_date ?? w.startDate ?? "",
+    //                 endDate: w.end_date ?? w.endDate ?? "",
+    //                 jobDescription: w.job_description ?? w.jobDescription ?? "",
+    //                 portfolioLink: w.portfolio_link ?? w.portfolioLink ?? "",
+    //                 files,
+    //               };
+    //             })
+    //           );
+
+    //           setWorkExperiences(worksWithFiles);
+    //         } catch (e) {
+    //           console.warn("getWork not found, set []");
+    //           setWorkExperiences([]);
+    //         }
+
+    //         // -------- activities --------
+    //         try {
+    //           const acts = await getActivities(userId);
+    //           setActivities(Array.isArray(acts) ? acts : []);
+    //         } catch (e) {
+    //           console.warn("getActivities not found, set []");
+    //           setActivities([]);
+    //         }
+
+    //         // -------- sports --------
+    //         try {
+    //           const sps = await getSports(userId);
+    //           setSports(Array.isArray(sps) ? sps : []);
+    //         } catch (e) {
+    //           console.warn("getSports not found, set []");
+    //           setSports([]);
+    //         }
+    //       } catch (e) {
+    //         console.error("โหลดข้อมูลล้มเหลว:", e);
+    //       }
+    //     })();
+    //   }, [userId]);
+
     // ---------- load initial data ----------
     useEffect(() => {
         (async () => {
-          try {
-            // -------- user --------
             try {
-              const user = await getUser(userId);
-              setPersonalInfo((prev) => ({ ...prev, ...(user || {}) }));
+                // -------- user --------
+                try {
+                    const user = await getUser(userId);
+                    setPersonalInfo((prev) => ({ ...prev, ...(user || {}) }));
+                } catch {
+                    console.warn("getUser not found, keep defaults");
+                }
+
+                // -------- work + files --------
+                try {
+                    const works = await getWork(userId);
+
+                    const worksWithFiles = await Promise.all(
+                        (Array.isArray(works) ? works : []).map(async (w) => {
+                            let files = [];
+                            try {
+                                const res = await listWorkFiles(userId, w.id);
+                                files = (res || []).map((f) => ({
+                                    id: f.id,
+                                    name:
+                                        f.originalName ||
+                                        decodeURIComponent((f.filePath || "").split("/").pop()),
+                                    size: f.sizeBytes ?? 0,
+                                    filePath: f.filePath,
+                                    url: toAbsUrl(f.filePath), // เสิร์ฟด้วย express.static("/uploads", ...)
+                                }));
+                            } catch {
+                                /* เงียบไว้ถ้าดึงไฟล์พลาด */
+                            }
+
+                            return {
+                                id: w.id,
+                                jobTitle: w.job_title ?? w.jobTitle ?? "",
+                                startDate: w.start_date ?? w.startDate ?? "",
+                                endDate: w.end_date ?? w.endDate ?? "",
+                                jobDescription: w.job_description ?? w.jobDescription ?? "",
+                                portfolioLink: w.portfolio_link ?? w.portfolioLink ?? "",
+                                files,
+                            };
+                        })
+                    );
+
+                    setWorkExperiences(worksWithFiles);
+                } catch {
+                    console.warn("getWork not found, set []");
+                    setWorkExperiences([]);
+                }
+
+                // -------- activities + photos --------
+                try {
+                    const acts = await getActivities(userId);
+
+                    const actsWithPhotos = await Promise.all(
+                        (Array.isArray(acts) ? acts : []).map(async (a) => {
+                            let photos = [];
+                            try {
+                                const res = await listActivityFiles(userId, a.id);
+                                photos = (res || []).map((p) => ({
+                                    id: p.id,
+                                    name:
+                                        p.originalName ||
+                                        decodeURIComponent((p.filePath || "").split("/").pop()),
+                                    size: p.sizeBytes ?? 0,
+                                    filePath: p.filePath,
+                                    url: toAbsUrl(p.filePath),
+                                }));
+                            } catch {
+                                /* เงียบไว้ถ้าดึงรูปพลาด */
+                            }
+
+                            return {
+                                id: a.id,
+                                name: a.name ?? "",
+                                type: a.type ?? "",
+                                // ฝั่ง backend ส่ง startDate/endDate เป็น 'YYYY-MM-DD' แล้ว
+                                startDate: a.startDate ?? a.start_date ?? "",
+                                endDate: a.endDate ?? a.end_date ?? "",
+                                description: a.description ?? "",
+                                photos,
+                            };
+                        })
+                    );
+
+                    setActivities(actsWithPhotos);
+                } catch {
+                    console.warn("getActivities not found, set []");
+                    setActivities([]);
+                }
+
+                // -------- sports --------
+                try {
+                    const sps = await getSports(userId);
+                    // สมมติ backend จัดรูปวันที่แล้วเป็น 'YYYY-MM-DD'
+                    setSports(Array.isArray(sps) ? sps : []);
+                } catch {
+                    console.warn("getSports not found, set []");
+                    setSports([]);
+                }
             } catch (e) {
-              console.warn("getUser not found, keep defaults");
+                console.error("โหลดข้อมูลล้มเหลว:", e);
             }
-      
-            // -------- work + files --------
-            try {
-              const works = await getWork(userId);
-      
-              const worksWithFiles = await Promise.all(
-                (Array.isArray(works) ? works : []).map(async (w) => {
-                  let files = [];
-                  try {
-                    const res = await listWorkFiles(userId, w.id);
-                    files = (res || []).map((f) => ({
-                      id: f.id,
-                      name:
-                        f.originalName ||
-                        decodeURIComponent((f.filePath || "").split("/").pop()),
-                      size: f.sizeBytes ?? 0,
-                      filePath: f.filePath,
-                      url: toAbsUrl(f.filePath), // เสิร์ฟด้วย express.static("/uploads", ...)
-                    }));
-                  } catch (e) {
-                    // เงียบไว้ถ้าดึงไฟล์พลาด
-                  }
-      
-                  return {
-                    id: w.id,
-                    jobTitle: w.job_title ?? w.jobTitle ?? "",
-                    startDate: w.start_date ?? w.startDate ?? "",
-                    endDate: w.end_date ?? w.endDate ?? "",
-                    jobDescription: w.job_description ?? w.jobDescription ?? "",
-                    portfolioLink: w.portfolio_link ?? w.portfolioLink ?? "",
-                    files,
-                  };
-                })
-              );
-      
-              setWorkExperiences(worksWithFiles);
-            } catch (e) {
-              console.warn("getWork not found, set []");
-              setWorkExperiences([]);
-            }
-      
-            // -------- activities --------
-            try {
-              const acts = await getActivities(userId);
-              setActivities(Array.isArray(acts) ? acts : []);
-            } catch (e) {
-              console.warn("getActivities not found, set []");
-              setActivities([]);
-            }
-      
-            // -------- sports --------
-            try {
-              const sps = await getSports(userId);
-              setSports(Array.isArray(sps) ? sps : []);
-            } catch (e) {
-              console.warn("getSports not found, set []");
-              setSports([]);
-            }
-          } catch (e) {
-            console.error("โหลดข้อมูลล้มเหลว:", e);
-          }
         })();
-      }, [userId]);
-      
-      
+    }, [userId]);
+
     // แทนที่ toWorkFE เดิมทั้งก้อนด้วยอันนี้
     const toWorkFE = (w) => ({
         id: w.id,
@@ -633,16 +822,16 @@ const Portfolio = () => {
                 title: 'บันทึก Portfolio สำเร็จ!',
                 timer: 1400,
                 showConfirmButton: false,
-              });
-            } catch (err) {
-              console.error("savePortfolio error:", err);
-              await Swal.fire({
+            });
+        } catch (err) {
+            console.error("savePortfolio error:", err);
+            await Swal.fire({
                 icon: 'error',
                 title: 'บันทึกล้มเหลว',
                 text: err?.response?.data?.message || err?.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่',
                 confirmButtonText: 'ตกลง',
-              });
-            }
+            });
+        }
     };
 
 
@@ -747,7 +936,7 @@ const Portfolio = () => {
                                 <label className="block text-sm font-medium text-gray-700 mb-2">รหัสนักศึกษา</label>
                                 <input
                                     type="text"
-                                    value={personalInfo.st_id_display}
+                                    value={personalInfo.st_id}
                                     onChange={(e) => handlePersonalInfoChange("st_id_display", e.target.value)}
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50"
                                     placeholder="XXXXXXXXXXX-X"
@@ -931,6 +1120,7 @@ const Portfolio = () => {
                             หมวดหมู่กิจกรรม
                         </h2>
                     </div>
+
                     <div className="p-6">
                         <div className="space-y-4">
                             {activities.map((activity, index) => (
@@ -944,6 +1134,7 @@ const Portfolio = () => {
                                             ลบ
                                         </button>
                                     </div>
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">ชื่อกิจกรรม</label>
@@ -955,6 +1146,7 @@ const Portfolio = () => {
                                                 placeholder="เช่น กิจกรรมค่ายอาสาสมัคร"
                                             />
                                         </div>
+
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">ประเภทกิจกรรม</label>
                                             <select
@@ -971,6 +1163,7 @@ const Portfolio = () => {
                                                 <option value="อื่นๆ">อื่นๆ</option>
                                             </select>
                                         </div>
+
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">วันที่เริ่มกิจกรรม</label>
                                             <input
@@ -980,6 +1173,7 @@ const Portfolio = () => {
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                             />
                                         </div>
+
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">วันที่สิ้นสุดกิจกรรม</label>
                                             <input
@@ -989,6 +1183,7 @@ const Portfolio = () => {
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                             />
                                         </div>
+
                                         <div className="md:col-span-2">
                                             <label className="block text-sm font-medium text-gray-700 mb-2">รายละเอียดกิจกรรม</label>
                                             <textarea
@@ -999,6 +1194,79 @@ const Portfolio = () => {
                                                 placeholder="เขียนรายละเอียดการกิจกรรม"
                                             />
                                         </div>
+
+                                      
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">รูปภาพกิจกรรม</label>
+
+                                            <div
+                                                className="border-2 border-dashed border-emerald-300 rounded-lg p-6 text-center hover:border-emerald-500 hover:bg-emerald-50 transition-all cursor-pointer"
+                                                onClick={() => {
+                                                    const input = document.createElement("input");
+                                                    input.type = "file";
+                                                    input.multiple = true;
+                                                    input.accept = "image/*";
+                                                    input.onchange = (e) => handleActivityFileUpload(activity.id, e.target.files);
+                                                    input.click();
+                                                }}
+                                            >
+                                                <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                                                <div className="mt-4">
+                                                    <button
+                                                        type="button"
+                                                        className="bg-white text-emerald-600 px-4 py-2 border-2 border-emerald-500 rounded-lg hover:bg-emerald-50 transition-colors"
+                                                    >
+                                                        เลือกรูปภาพกิจกรรม
+                                                    </button>
+                                                </div>
+                                                <p className="mt-2 text-sm text-gray-500">
+                                                    รองรับ JPG, PNG, GIF, WEBP (ไม่เกิน 10MB/ไฟล์)
+                                                </p>
+                                            </div>
+
+                                            {!!(activity.photos?.length) && (
+                                                <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3">
+                                                    {activity.photos.map((file, idx) => {
+                                                        const displayName =
+                                                            file.name ||
+                                                            file.originalName ||
+                                                            (file.filePath ? decodeURIComponent(file.filePath.split("/").pop()) : "image");
+                                                        const displaySize = file.size ?? file.sizeBytes ?? 0;
+
+                                                        return (
+                                                            <div key={idx} className="relative border rounded-lg p-2 bg-gray-50">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => previewFileHandler(file)}
+                                                                    className="block w-full"
+                                                                    title="ดูตัวอย่าง"
+                                                                >
+                                                                    <img
+                                                                        src={file.url ? file.url : (file instanceof File ? URL.createObjectURL(file) : "")}
+                                                                        alt={displayName}
+                                                                        className="w-full h-32 object-cover rounded-md"
+                                                                    />
+                                                                </button>
+
+                                                                <div className="mt-2 flex items-center justify-between">
+                                                                    <div className="text-xs text-gray-700 truncate pr-2">{displayName}</div>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => removeActivityFile(activity.id, idx)}
+                                                                        className="text-red-500 hover:text-red-700"
+                                                                        title="ลบ"
+                                                                    >
+                                                                        <X className="w-4 h-4" />
+                                                                    </button>
+                                                                </div>
+                                                                <div className="text-[10px] text-gray-500">{formatFileSize(displaySize)}</div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                      
                                     </div>
                                 </div>
                             ))}
@@ -1013,6 +1281,7 @@ const Portfolio = () => {
                         </button>
                     </div>
                 </div>
+
 
                 {/* Sports */}
                 <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
@@ -1128,69 +1397,69 @@ const Portfolio = () => {
             </div>
 
             {showPreview && previewFile && (
-                            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-                                <div className="bg-white rounded-2xl max-w-4xl max-h-[90vh] w-full overflow-hidden">
-                                    <div className="flex items-center justify-between p-4 border-b">
-                                        <div className="flex items-center gap-3">
-                                            <FileIcon className="w-5 h-5 text-gray-500" />
-                                            <div>
-                                                <h3 className="font-semibold text-gray-900">{previewFile.name}</h3>
-                                                <p className="text-sm text-gray-500">{formatFileSize(previewFile.size)}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            {previewFile.url && (
-                                                <a
-                                                href={previewFile.url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                download={previewFile.name}
-                                                className="flex items-center gap-2 px-3 py-2 text-sm bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors"
-                                              >
-                                                <Download className="w-4 h-4" />
-                                                ดาวน์โหลด
-                                              </a>
-                                              
-                                            )}
-                                            <button
-                                                onClick={closePreview}
-                                                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                                            >
-                                                <X className="w-5 h-5" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="p-4 max-h-[70vh] overflow-auto">
-                                        {isImageFile(previewFile.type) ? (
-                                            <div className="text-center">
-                                                <img
-                                                    src={previewFile.url}
-                                                    alt={previewFile.name}
-                                                    className="max-w-full max-h-full object-contain rounded-lg shadow-lg mx-auto"
-                                                />
-                                            </div>
-                                        ) : isPDFFile(previewFile.type) ? (
-                                            <div className="w-full h-96">
-                                                <iframe
-                                                    src={`${previewFile.url || ''}${(previewFile.url || '').includes('?') ? '&' : '?'}v=${Date.now()}`}
-                                                    className="w-full h-full border border-gray-300 rounded-lg"
-                                                    title={previewFile.name}
-                                                />
-                                            </div>
-                                        ) : (
-                                            <div className="text-center py-12">
-                                                <FileIcon   className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                                                <p className="text-gray-600 mb-2">ไม่สามารถแสดงตัวอย่างไฟล์นี้ได้</p>
-                                                <p className="text-sm text-gray-500">
-                                                    ประเภทไฟล์: {previewFile.type || 'ไม่ทราบ'}
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
+                <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl max-w-4xl max-h-[90vh] w-full overflow-hidden">
+                        <div className="flex items-center justify-between p-4 border-b">
+                            <div className="flex items-center gap-3">
+                                <FileIcon className="w-5 h-5 text-gray-500" />
+                                <div>
+                                    <h3 className="font-semibold text-gray-900">{previewFile.name}</h3>
+                                    <p className="text-sm text-gray-500">{formatFileSize(previewFile.size)}</p>
                                 </div>
                             </div>
-                        )}
+                            <div className="flex items-center gap-2">
+                                {previewFile.url && (
+                                    <a
+                                        href={previewFile.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        download={previewFile.name}
+                                        className="flex items-center gap-2 px-3 py-2 text-sm bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors"
+                                    >
+                                        <Download className="w-4 h-4" />
+                                        ดาวน์โหลด
+                                    </a>
+
+                                )}
+                                <button
+                                    onClick={closePreview}
+                                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="p-4 max-h-[70vh] overflow-auto">
+                            {isImageFile(previewFile.type) ? (
+                                <div className="text-center">
+                                    <img
+                                        src={previewFile.url}
+                                        alt={previewFile.name}
+                                        className="max-w-full max-h-full object-contain rounded-lg shadow-lg mx-auto"
+                                    />
+                                </div>
+                            ) : isPDFFile(previewFile.type) ? (
+                                <div className="w-full h-96">
+                                    <iframe
+                                        src={`${previewFile.url || ''}${(previewFile.url || '').includes('?') ? '&' : '?'}v=${Date.now()}`}
+                                        className="w-full h-full border border-gray-300 rounded-lg"
+                                        title={previewFile.name}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <FileIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                                    <p className="text-gray-600 mb-2">ไม่สามารถแสดงตัวอย่างไฟล์นี้ได้</p>
+                                    <p className="text-sm text-gray-500">
+                                        ประเภทไฟล์: {previewFile.type || 'ไม่ทราบ'}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

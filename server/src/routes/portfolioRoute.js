@@ -1,9 +1,9 @@
 
 
-const userController = require("../controllers/portfolio/userController");
-const workController = require("../controllers/portfolio/workController");
-const activityController = require("../controllers/portfolio/activityController");
-const sportController = require("../controllers/portfolio/sportController");
+const userController = require("../controllers/user/portfolio/userController");
+const workController = require("../controllers/user/portfolio/workController");
+const activityController = require("../controllers/user/portfolio/activityController");
+const sportController = require("../controllers/user/portfolio/sportController");
 const { upload } = require("../middlewares/uploadPortfolioFiles");
 const router = require('express').Router();
 /* ---------------- USERS ---------------- */
@@ -29,6 +29,17 @@ router.get("/activities/:userId", activityController.getActivities);
 router.post("/activities/:userId", activityController.addActivity);
 router.put("/activities/:id", activityController.updateActivity);
 router.delete("/activities/:id", activityController.deleteActivity);
+
+// อัปโหลดรูปกิจกรรม
+router.post("/:userId/activities/:activityId/photos", upload.array("files", 10), activityController.uploadActivityImages);
+
+// รายการรูปของกิจกรรม
+router.get("/:userId/activities/:activityId/photos", activityController.listActivityImages);
+
+// ลบรูปกิจกรรม
+router.delete("/:userId/activities/files/:imageId", activityController.deleteActivityImage);
+
+
 
 /* ---------------- SPORTS ---------------- */
 router.get("/sports/:userId", sportController.getSports);

@@ -140,6 +140,14 @@ export default function Sidebar() {
             </Link>
           </li>
           <li>
+            <Link
+              to="/template"
+              className="w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100"
+            >
+              <span className="text-sm">template</span>
+            </Link>
+          </li>
+          <li>
             <button className="w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100">
               <span className="text-sm">การแจ้งเตือน</span>
               <span className="px-1.5 py-0.5 text-xs font-medium rounded-full bg-slate-100 text-slate-600">

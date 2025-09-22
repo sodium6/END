@@ -91,6 +91,35 @@ export const deleteActivity = async (id) => {
   return res.data;
 };
 
+export const uploadActivityFiles = async (userId, activityId, fileListOrArray) => {
+  const fd = new FormData();
+  const filesArr = Array.isArray(fileListOrArray)
+    ? fileListOrArray
+    : Array.from(fileListOrArray || []);
+  if (!filesArr.length) throw new Error("No files to upload");
+  for (const f of filesArr) fd.append("files", f);
+
+  const res = await api.post(
+    `/portfolio/${userId}/activities/${activityId}/photos`,
+    fd,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+  return res.data; // { files: [...] }
+};
+
+
+export const listActivityFiles = async (userId, activityId) => {
+  // /:userId/activities/:activityId/photos
+  const res = await api.get(`/portfolio/${userId}/activities/${activityId}/photos`);
+  return res.data; // [{id,filePath,originalName,sizeBytes}, ...]
+};
+
+
+export const deleteActivityFile = async (userId, imageId) => {
+  const res = await api.delete(`/portfolio/${userId}/activities/files/${imageId}`);
+  return res.data;
+};
+
 
 // ---------------- SPORTS ----------------
 export const getSports = async (userId) => {

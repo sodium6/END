@@ -1,4 +1,4 @@
-const pool = require("../../db/database");
+const pool = require("../../../db/database");
 const bcrypt = require("bcryptjs");
 
 // ✅ GET profile
