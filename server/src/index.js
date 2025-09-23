@@ -6,6 +6,8 @@ const path = require('path');
 const errorHandler = require('./middlewares/error-handler.js');
 const { NotFoundError } = require('./utils/error.js');
 const routes = require('./routes/index.js');
+const Admin = require('./models/Admin.js');
+const News = require('./models/News.js');
 require('dotenv').config();
 
 const app = express();
@@ -30,10 +32,17 @@ app.use('/uploads', express.static(UPLOADS_DIR, {
   fallthrough: false, // ถ้าไฟล์ไม่มี ให้ตอบ 404 ที่นี่เลย
 }));
 
+console.log('--- ROUTES BEING MOUNTED ---');
+console.log(routes);
+console.log('-----------------------------');
 // --- API ---
 routes.forEach(({ path, route }) => {
   console.log('[MOUNT]', `/api/${path}`);
   app.use(`/api/${path}`, route);
+});
+
+app.get('/test', (req, res) => {
+  res.send('Server is running the latest code!');
 });
 
 // 404 ที่เหลือ
@@ -43,5 +52,33 @@ app.use((req, res, next) => {
 
 app.use(errorHandler);
 
+// Initialize database tables
+const initializeDatabase = async () => {
+  try {
+    console.log('🔄 Initializing database tables...');
+    // Drop dependents first to avoid FK issues when adjusting parent
+    try {
+      await News.dropIfExists?.();
+    } catch (e) {
+      // ignore if method not available
+    }
+    await Admin.createTable();
+    await News.createTable();
+    console.log('✅ Database tables initialized successfully');
+  } catch (error) {
+    console.error('❌ Database initialization failed:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      errno: error.errno,
+      sqlState: error.sqlState
+    });
+    process.exit(1); // หยุดการทำงานของเซิร์ฟเวอร์ถ้าฐานข้อมูลไม่สามารถเริ่มต้นได้
+  }
+};
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.info(`Server is running on port: ${PORT}`));
+app.listen(PORT, async () => {
+  console.info(`🚀 Server is running on port: ${PORT}`);
+  await initializeDatabase();
+});
