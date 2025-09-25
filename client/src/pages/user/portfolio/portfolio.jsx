@@ -54,6 +54,7 @@ const Portfolio = () => {
         email: "",
         st_id_display: "",
         password_new: "",
+        user_desc: "",
     });
     const [workExperiences, setWorkExperiences] = useState([]);
     const [activities, setActivities] = useState([]);
@@ -943,6 +944,23 @@ const Portfolio = () => {
                                     disabled
                                 />
                             </div>
+                            <div className="md:col-span-2">
+                                <label className="md:col-span-2 block text-sm font-medium text-gray-700 mb-2">
+                                    คำอธิบายตนเอง (user_desc)
+                                </label>
+                                <textarea
+                                    value={personalInfo?.user_desc ?? ""}
+                                    onChange={(e) => handlePersonalInfoChange("user_desc", e.target.value)}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                                    placeholder="แนะนำตัวเองสั้น ๆ เช่น ความสนใจ ทักษะเด่น เป้าหมายการฝึกงาน/การทำงาน"
+                                    rows={4}
+                                        maxLength={500}
+                                    />
+                                    <div className="mt-1 text-xs text-gray-500 text-right">
+                                        {(personalInfo?.user_desc?.length ?? 0)}/500 อักขระ
+                                    </div>
+                                </div>
+
                             <div className="md:col-span-2">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Password (กรอกเฉพาะกรณีต้องการเปลี่ยน)

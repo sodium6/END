@@ -16,7 +16,7 @@ const getPortfolioData = async (req, res) => {
     // ---------- 1) ดึงข้อมูลผู้ใช้ ----------
     const [userRows] = await pool.query(
       `SELECT id, first_name_th, last_name_th, first_name_en, last_name_en,
-              education, phone, email, st_id, created_at
+              education, phone, email, st_id, created_at , user_desc
        FROM users
        WHERE id = ?`,
       [userId]

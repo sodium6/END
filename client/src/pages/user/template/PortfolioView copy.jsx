@@ -46,7 +46,59 @@
   #portfolio-print-area table {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
-  }int .bg-gradient-to-br {
+  }
+
+  /* ปิดเงาและเอฟเฟกต์ทั้งหมด - ลบกรอบและเงา */
+  #portfolio-print-area,
+  #portfolio-print-area * {
+    box-shadow: none !important;
+    filter: none !important;
+    border-radius: 0 !important;
+  }
+
+  /* ลบกรอบการ์ดและเงาทั้งหมด */
+  #portfolio-print-area .rounded-3xl,
+  #portfolio-print-area .rounded-2xl,
+  #portfolio-print-area .rounded-xl,
+  #portfolio-print-area .rounded-lg {
+    border-radius: 0 !important;
+  }
+  
+  #portfolio-print-area .shadow-xl,
+  #portfolio-print-area .shadow-2xl,
+  #portfolio-print-area .shadow-lg,
+  #portfolio-print-area .shadow {
+    box-shadow: none !important;
+  }
+
+  /* ทำให้เต็มหน้า */
+  #portfolio-print-area > div {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* ปิดกราเดียนต์/พื้นหลัง - รักษาสีตาม theme */
+  #portfolio-print-area .bg-gradient-to-br,
+  #portfolio-print-area .bg-gradient-to-r {
+    background-image: none !important;
+  }
+
+  /* Template 1 - Blue theme */
+  #portfolio-print-area.template1-print .bg-gradient-to-br {
+    background-color: #dbeafe !important; /* blue-100 */
+  }
+  
+  /* Template 2 - Dark theme */  
+  #portfolio-print-area.template2-print {
+    background-color: #1f2937 !important; /* gray-800 */
+    color: #fff !important;
+  }
+  #portfolio-print-area.template2-print .text-white {
+    color: #fff !important;
+  }
+  
+  /* Template 3 - Gradient theme */
+  #portfolio-print-area.template3-print .bg-gradient-to-br {
     background-color: #fdf2f8 !important; /* pink-50 */
   }
 `}</style>

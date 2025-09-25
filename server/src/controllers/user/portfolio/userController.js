@@ -27,12 +27,13 @@ const updateUserProfile = async (req, res) => {
       phone,
       email,
       password_new,
+      user_desc,
     } = req.body;
 
     let query = `
       UPDATE users 
       SET first_name_th=?, last_name_th=?, first_name_en=?, last_name_en=?, 
-          education=?, phone=?, email=?`;
+          education=?, phone=?, email=? ,user_desc=?`;
 
     const params = [
       first_name_th,
@@ -42,6 +43,7 @@ const updateUserProfile = async (req, res) => {
       education,
       phone,
       email,
+      user_desc,
     ];
 
     if (password_new) {

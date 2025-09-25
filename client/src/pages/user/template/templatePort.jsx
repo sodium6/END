@@ -86,14 +86,32 @@ function TemplatePort({ onSelect, onContinue }) {
   };
 
   const handleUse = (tpl, e) => {
-    e?.preventDefault?.(); // กันกรณีปุ่มอยู่ใน <form>
+    e?.preventDefault?.();
     setSelectedId(tpl.id);
     setPreview(null);
+  
+    // id ของพื้นหลังที่ PortfolioView เข้าใจ
+    const bgId = BG_ID_MAP[tpl.id] || "tpl-1";
+  
+    // ส่งต่อให้พาเร้นท์ (ถ้ามีใช้)
     onSelect?.(tpl.id);
     onContinue?.(tpl);
-    navigate("/template/view", { state: { templateId: tpl.id } });
+  
+    // persist และแนบใน URL ด้วย
+    localStorage.setItem("portfolio.tpl", bgId);
+    navigate(`/template/view?tpl=${encodeURIComponent(bgId)}`, {
+      state: { templateId: bgId },
+    });
   };
-
+  
+  const BG_ID_MAP = {
+    "emerald-minimal": "tpl-1",
+    "forest-pro": "tpl-2",
+    "leaf-visual": "tpl-3",
+    "neo-emerald": "tpl-1", // จะให้ไปหน้าไหนก็ปรับได้
+    blank: "tpl-1",
+  };
+  
   return (
     <div className="min-h-screen bg-white text-gray-900">
       {/* Hero */}
