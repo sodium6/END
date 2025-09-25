@@ -1,4 +1,4 @@
-﻿import { Route, Routes, BrowserRouter } from 'react-router-dom';
+import { Route, Routes, BrowserRouter } from 'react-router-dom';
 
 // Layouts
 import IndexLayout from './layouts/IndexLayout';
@@ -23,28 +23,20 @@ import AdminSettings from './pages/admin/settings/adminSettings';
 import UserFormPage from './pages/admin/users/UserFormPage';
 import NewsFormPage from './pages/admin/content/NewsFormPage';
 
-
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* 
-          DEV SWITCH: 
-          ??????????????????? Route path="/" ???????? ???????????????????????????????????????????????????????? ?????????????
-        */}
-        
         {/* USER ROUTES */}
         <Route path="/" element={<SignIn />} />
         <Route path="/sign-up" element={<SignUp />} />
         <Route element={<IndexLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />     
-          <Route path="/my-portfolio" element={<Portfolio />} />     
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/my-portfolio" element={<Portfolio />} />
           <Route path="/public-relations" element={<PublicRelations />} />
         </Route>
 
         {/* ADMIN ROUTES */}
-        {/* ?????????????? ?????? path ??????????? */}
-        {/* <Route path="/" element={<AdminLogin />} /> */} 
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<RequireAdminAuth><AdminLayout /></RequireAdminAuth>}>
           <Route index element={<AdminDashboard />} />
@@ -56,14 +48,14 @@ function App() {
           <Route path="content/news/create" element={<NewsFormPage />} />
           <Route path="content/news/edit/:id" element={<NewsFormPage />} />
           <Route path="content/announcements" element={<Announcements />} />
+          <Route path="content/announcements/create" element={<NewsFormPage />} />
+          <Route path="content/announcements/edit/:id" element={<NewsFormPage />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
-
       </Routes>
     </BrowserRouter>
   );
 }
 
 export default App;
-

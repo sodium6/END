@@ -38,11 +38,49 @@ export const adminApi = {
     return data;
   },
 
+  // Member API
+  getMembers: async ({ page = 1, pageSize = 10, q = '', status = '' } = {}) => {
+    const params = { page, pageSize, q };
+    if (status) {
+      params.status = status;
+    }
+    const { data } = await api.get('admin/members', { params });
+    return data; // { data, total }
+  },
+
+  getMemberById: async (memberId) => {
+    const { data } = await api.get(`admin/members/${memberId}`);
+    return data; // { member }
+  },
+
+  updateMemberStatus: async (memberId, status) => {
+    const { data } = await api.patch(`admin/members/${memberId}/status`, { status });
+    return data;
+  },
+
+  resetMemberPassword: async (memberId, password) => {
+    const payload = {};
+    if (password) {
+      payload.password = password;
+    }
+    const { data } = await api.post(`admin/members/${memberId}/reset-password`, payload);
+    return data; // { memberId, newPassword, generated }
+  },
+
+  deleteMember: async (memberId) => {
+    const { data } = await api.delete(`admin/members/${memberId}`);
+    return data;
+  },
   // News API
-  getNews: async ({ page = 1, pageSize = 10, q = '' } = {}) => {
-    const { data } = await api.get('admin/news', {
-      params: { page, pageSize, q },
-    });
+  getNews: async ({ page = 1, pageSize = 10, q = '', category, excludeCategory } = {}) => {
+    const params = { page, pageSize, q };
+    if (category) {
+      params.category = category;
+    }
+    if (excludeCategory) {
+      params.excludeCategory = excludeCategory;
+    }
+    const { data } = await api.get('admin/news', { params });
     return data; // { data, total }
   },
 
@@ -66,5 +104,9 @@ export const adminApi = {
     return data;
   },
 };
+
+
+
+
 
 

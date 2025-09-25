@@ -3,7 +3,7 @@ const router = express.Router();
 
 const { login } = require('../controllers/admin/adminAuthController');
 const { listUsers, getUserById, createUser, updateUser, deleteUser } = require('../controllers/admin/adminUserController');
-const { getAllNews, getNewsById, createNews, updateNews, deleteNews } = require('../controllers/admin/adminContentController');
+const { getAllNews, getNewsById, createNews, updateNews, deleteNews } = require('../controllers/admin/adminContentController');\nconst { listMembers, getMemberById: getMember, updateMemberStatus, resetMemberPassword, deleteMember } = require('../controllers/admin/memberController');
 const adminAuth = require('../middlewares/adminAuth-handler');
 const requireRole = require('../middlewares/adminRole-handler');
 
@@ -24,12 +24,14 @@ router.delete('/users/:id', adminAuth, requireRole(['superadmin']), deleteUser);
 // Content management (News)
 router.get('/news', adminAuth, getAllNews);
 router.get('/news/:id', adminAuth, getNewsById);
-router.post('/news', adminAuth, requireRole(['superadmin', 'editor']), createNews);
-router.put('/news/:id', adminAuth, requireRole(['superadmin', 'editor']), updateNews);
-router.delete('/news/:id', adminAuth, requireRole(['superadmin', 'editor']), deleteNews);
+router.post('/news', adminAuth, requireRole(['superadmin', 'admin']), createNews);
+router.put('/news/:id', adminAuth, requireRole(['superadmin', 'admin']), updateNews);
+router.delete('/news/:id', adminAuth, requireRole(['superadmin', 'admin']), deleteNews);
 
 module.exports = {
   path: 'admin',
   route: router,
 };
+
+
 

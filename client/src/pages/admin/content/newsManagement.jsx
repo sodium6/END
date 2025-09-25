@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { adminApi } from "../../../services/adminApi";
 import { Link, useNavigate } from "react-router-dom";
 import NewsTable from "../../../components/admin/tables/NewsTable";
 
 const PAGE_SIZE = 10;
+const ANNOUNCEMENT_CATEGORY = "announcement";
 
 export default function NewsManagement() {
   const navigate = useNavigate();
@@ -16,22 +17,7 @@ export default function NewsManagement() {
 
   const where = useMemo(() => (q?.trim() ? q.trim() : ""), [q]);
 
-  const handleEdit = (newsId) => {
-    navigate(`/admin/content/news/edit/${newsId}`);
-  };
-
-  const handleDelete = async (newsId) => {
-    if (window.confirm("Are you sure you want to delete this article?")) {
-      try {
-        await adminApi.deleteNews(newsId);
-        fetchNews(); // Refresh the list
-      } catch (error) {
-        setErr(error.message || "Failed to delete article.");
-      }
-    }
-  };
-
-  async function fetchNews() {
+  const fetchNews = useCallback(async () => {
     try {
       setLoading(true);
       setErr("");
@@ -39,6 +25,7 @@ export default function NewsManagement() {
         page,
         pageSize: PAGE_SIZE,
         q: where,
+        excludeCategory: ANNOUNCEMENT_CATEGORY,
       });
       setNews(data || []);
       setTotal(total || 0);
@@ -47,17 +34,31 @@ export default function NewsManagement() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [page, where]);
+
+  const handleEdit = (newsId) => {
+    navigate(`/admin/content/news/edit/${newsId}`);
+  };
+
+  const handleDelete = async (newsId) => {
+    if (window.confirm("Are you sure you want to delete this article?")) {
+      try {
+        await adminApi.deleteNews(newsId);
+        fetchNews();
+      } catch (error) {
+        setErr(error.message || "Failed to delete article.");
+      }
+    }
+  };
 
   useEffect(() => {
     fetchNews();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, where]);
+  }, [fetchNews]);
 
   return (
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold">จัดการข่าวสาร</h1>
+        <h1 className="text-2xl font-bold">News</h1>
         <div className="flex gap-3">
           <input
             value={q}
@@ -65,28 +66,27 @@ export default function NewsManagement() {
               setPage(1);
               setQ(e.target.value);
             }}
-            placeholder="ค้นหาหัวข้อข่าว"
+            placeholder="Search news by title or category"
             className="px-3 py-2 border rounded-md w-64"
           />
           <Link
             to="/admin/content/news/create"
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
-            + สร้างข่าวใหม่
+            + Create news article
           </Link>
         </div>
       </div>
 
       {err && <div className="mb-4 text-red-600">{err}</div>}
       {loading ? (
-        <div className="py-12 text-center text-gray-500">กำลังโหลดข้อมูล…</div>
+        <div className="py-12 text-center text-gray-500">Loading...</div>
       ) : (
         <>
           <NewsTable news={news} onEdit={handleEdit} onDelete={handleDelete} />
-          {/* Pagination */}
           <div className="flex items-center justify-between p-4">
             <span className="text-sm text-gray-500">
-              ทั้งหมด {total} รายการ • หน้า {page} จาก {Math.max(1, Math.ceil(total / PAGE_SIZE))}
+              Total {total} items | Page {page} of {Math.max(1, Math.ceil(total / PAGE_SIZE))}
             </span>
             <div className="flex gap-2">
               <button
@@ -94,14 +94,14 @@ export default function NewsManagement() {
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 className="px-3 py-1.5 rounded border disabled:opacity-50"
               >
-                ก่อนหน้า
+                Previous
               </button>
               <button
                 disabled={page >= Math.ceil(total / PAGE_SIZE)}
                 onClick={() => setPage((p) => p + 1)}
                 className="px-3 py-1.5 rounded border disabled:opacity-50"
               >
-                ถัดไป
+                Next
               </button>
             </div>
           </div>

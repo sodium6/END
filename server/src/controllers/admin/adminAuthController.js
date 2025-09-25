@@ -1,4 +1,4 @@
-const pool = require('../../db/database');
+﻿const pool = require('../../db/database');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
@@ -7,7 +7,9 @@ require('dotenv').config();
 // @route   POST /api/admin/auth/login
 // @access  Public
 const login = async (req, res) => {
-  const { username, password } = req.body;
+  const { username: rawUsername = '', password: rawPassword = '' } = req.body || {};
+  const username = `${rawUsername}`.trim();
+  const password = `${rawPassword}`;
 
   // Basic validation
   if (!username || !password) {
@@ -20,18 +22,38 @@ const login = async (req, res) => {
     const admin = rows[0];
 
     if (!admin) {
-      return res.status(401).json({ message: 'Invalid credentials' }); // Unauthorized
+      return res.status(401).json({ message: 'Invalid username or password' }); // Unauthorized
     }
 
     // Check password
-    // This assumes you have a 'password_hash' column in your 'admins' table
-    const isMatch = await bcrypt.compare(password, admin.password_hash);
+    const storedHash = admin.password_hash || '';
+    let isMatch = false;
+
+    // Check if the stored hash is a modern bcrypt hash (starts with $2a$, $2b$, etc.)
+    if (storedHash.startsWith('$2a$') || storedHash.startsWith('$2b$') || storedHash.startsWith('$2y$')) {
+      isMatch = await bcrypt.compare(password, storedHash);
+    } else {
+      // Fallback for legacy plain text passwords
+      if (storedHash && storedHash === password) {
+        isMatch = true;
+        // If a legacy password matches, rehash it and update it in the database for future use.
+        try {
+          const newHash = await bcrypt.hash(password, 10);
+          await pool.execute('UPDATE admins SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE admin_id = ?', [newHash, admin.admin_id]);
+          console.log(`[Security] Upgraded password for admin: ${admin.username}`);
+        } catch (rehashErr) {
+          console.warn('Failed to rehash legacy admin password:', rehashErr.message);
+        }
+      }
+    }
+
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' }); // Unauthorized
+      return res.status(401).json({ message: 'Invalid username or password' }); // Unauthorized
     }
 
     // Check if admin account is active
-    if (admin.STATUS !== 'active') {
+    const adminStatus = ((admin.status || admin.STATUS || '') + '').toLowerCase();
+    if (adminStatus && adminStatus !== 'active') {
       return res.status(403).json({ message: 'Account is not active. Please contact support.' }); // Forbidden
     }
 

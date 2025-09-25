@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
-import { FiChevronDown, FiGrid, FiUsers, FiFileText, FiBarChart2, FiSettings } from 'react-icons/fi';
+import { NavLink, useNavigate } from "react-router-dom";
+import { FiChevronDown, FiGrid, FiUsers, FiFileText, FiBarChart2, FiSettings, FiLogOut } from 'react-icons/fi';
+import useAdminAuth from '../../../hooks/useAdminAuth';
 
 const SidebarLink = ({ to, icon, children }) => (
   <NavLink
@@ -44,6 +45,14 @@ const CollapsibleLink = ({ icon, title, children }) => {
 };
 
 export default function AdminSidebar() {
+  const navigate = useNavigate();
+  const { admin, loading, logout } = useAdminAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/admin/login', { replace: true });
+  };
+
   return (
     <aside className="bg-gray-800 text-white w-64 min-h-screen p-4 flex flex-col">
       <div className="mb-6">
@@ -71,8 +80,24 @@ export default function AdminSidebar() {
           การตั้งค่า
         </SidebarLink>
       </nav>
-      <div className="mt-auto">
-         {/* Logout or other bottom items can go here */}
+      <div className="mt-auto pt-4 border-t border-gray-700 space-y-3">
+        <div className="px-3 text-sm">
+          <p className="font-semibold text-gray-200">
+            {loading ? 'Loading...' : admin?.name || admin?.username || 'Admin'}
+          </p>
+          {!loading && (
+            <p className="text-xs text-gray-400 uppercase tracking-wide">
+              {admin?.role || ''}
+            </p>
+          )}
+        </div>
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center px-3 py-2 rounded-md text-sm font-medium text-red-400 hover:bg-gray-700 hover:text-red-200 transition-colors"
+        >
+          <FiLogOut className="mr-3" />
+          <span>ออกจากระบบ</span>
+        </button>
       </div>
     </aside>
   );

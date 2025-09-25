@@ -3,8 +3,21 @@ const News = require('../../models/News');
 // Get all news articles (paginated)
 exports.getAllNews = async (req, res, next) => {
   try {
-    const { page = 1, pageSize = 10, q = '' } = req.query;
-    const result = await News.getAll({ page: parseInt(page), pageSize: parseInt(pageSize), q });
+    const {
+      page = 1,
+      pageSize = 10,
+      q = '',
+      category = '',
+      excludeCategory = '',
+    } = req.query;
+
+    const result = await News.getAll({
+      page: parseInt(page, 10),
+      pageSize: parseInt(pageSize, 10),
+      q,
+      category,
+      excludeCategory,
+    });
     res.json(result);
   } catch (error) {
     next(error);

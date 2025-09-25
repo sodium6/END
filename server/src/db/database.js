@@ -16,12 +16,15 @@ const pool = mysql.createPool({
   authPlugins: {
     mysql_native_password: () => () => Buffer.alloc(0)
   },
-  // การตั้งค่าที่ถูกต้อง
+  // การตั้งค่าที่ถูกต้องตาม mysql2 v3
   ssl: false,
-  acquireTimeout: 60000,
-  timeout: 60000,
-  reconnect: true,
-  // เพิ่มการตั้งค่าที่ถูกต้อง
+  // ใช้ connectTimeout (ms) แทน acquireTimeout/timeout
+  connectTimeout: 60000,
+  // ตั้งค่า pool idle timeout (ms)
+  idleTimeout: 60000,
+  // เปิด keep-alive เพื่อลดโอกาสตัดการเชื่อมต่อ
+  enableKeepAlive: true,
+  // ออปชันเพิ่มเติมที่ปลอดภัย
   multipleStatements: false,
   dateStrings: false,
   debug: false
