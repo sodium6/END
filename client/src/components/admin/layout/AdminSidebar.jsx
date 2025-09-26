@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { FiChevronDown, FiGrid, FiUsers, FiFileText, FiBarChart2, FiSettings, FiLogOut } from 'react-icons/fi';
+import { FiChevronDown, FiGrid, FiUsers, FiFileText, FiBarChart2, FiSettings, FiLogOut, FiSend } from 'react-icons/fi';
 import useAdminAuth from '../../../hooks/useAdminAuth';
 
 const SidebarLink = ({ to, icon, children }) => (
@@ -9,9 +9,7 @@ const SidebarLink = ({ to, icon, children }) => (
     end
     className={({ isActive }) =>
       `flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-        isActive
-          ? "bg-gray-900 text-white"
-          : "text-gray-300 hover:bg-gray-700 hover:text-white"
+        isActive ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
       }`
     }
   >
@@ -73,8 +71,14 @@ export default function AdminSidebar() {
           <SidebarLink to="/admin/content/announcements">ประกาศ</SidebarLink>
         </CollapsibleLink>
 
+        {admin?.role === 'superadmin' && (
+          <SidebarLink to="/admin/communications/email" icon={<FiSend className="mr-3" />}>
+            Email Broadcast
+          </SidebarLink>
+        )}
+
         <SidebarLink to="/admin/analytics" icon={<FiBarChart2 className="mr-3" />}>
-          การวิเคราะห์
+          วิเคราะห์ข้อมูล
         </SidebarLink>
         <SidebarLink to="/admin/settings" icon={<FiSettings className="mr-3" />}>
           การตั้งค่า

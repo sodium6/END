@@ -71,6 +71,13 @@ export const adminApi = {
     const { data } = await api.delete(`admin/members/${memberId}`);
     return data;
   },
+  // Analytics API
+  getAnalyticsSummary: async () => {
+    const { data } = await api.get('admin/analytics/summary');
+    return data;
+  },
+
+
   // News API
   getNews: async ({ page = 1, pageSize = 10, q = '', category, excludeCategory } = {}) => {
     const params = { page, pageSize, q };
@@ -104,6 +111,8 @@ export const adminApi = {
     return data;
   },
 };
+
+
 
 
 

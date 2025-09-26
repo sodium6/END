@@ -1,4 +1,4 @@
-const bcrypt = require("bcryptjs");
+﻿const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const pool = require("../../db/database");
 const User = require('../../models/User');
@@ -20,16 +20,16 @@ const register = async (req, res) => {
       password,
     } = req.body;
 
-    // ??????? email ???
+    // ตรวจสอบ email ซ้ำ
     const [existEmail] = await pool.query("SELECT id FROM users WHERE email = ?", [email]);
     if (existEmail.length > 0) {
-      return res.status(400).json({ message: "?????????????????????" });
+      return res.status(400).json({ message: "อีเมลนี้ถูกใช้งานแล้ว" });
     }
 
-    // ??????? st_id_canonical ???
+    // ตรวจสอบ st_id_canonical ซ้ำ
     const [existStid] = await pool.query("SELECT id FROM users WHERE st_id_canonical = ?", [st_id_canonical]);
     if (existStid.length > 0) {
-      return res.status(400).json({ message: "????????????????????????????" });
+      return res.status(400).json({ message: "รหัสนักศึกษานี้ถูกใช้งานแล้ว" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -53,7 +53,7 @@ const register = async (req, res) => {
       ]
     );
 
-    res.json({ message: "????????????????? ??????????????????????????????" });
+    res.json({ message: "สมัครสมาชิกสำเร็จ กรุณารอการตรวจสอบจากผู้ดูแลระบบ" });
   } catch (err) {
     console.error("Register error:", err);
     res.status(500).json({ message: "Server error" });
@@ -63,56 +63,66 @@ const register = async (req, res) => {
 // ================= Login =================
 const login = async (req, res) => {
   try {
-    const { st_id_canonical, password } = req.body;
+    const { st_id_canonical: identifier, password } = req.body || {};
 
+    const rawIdentifier = (identifier || '').trim();
+    if (!rawIdentifier || !password) {
+      return res.status(400).json({ message: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
+    }
+
+    const normalizedId = rawIdentifier.toLowerCase();
     const [rows] = await pool.query(
-      "SELECT * FROM users WHERE st_id_canonical = ?",
-      [st_id_canonical]
+      "SELECT * FROM users WHERE LOWER(st_id_canonical) = ? OR LOWER(st_id) = ? OR LOWER(email) = ?",
+      [normalizedId, normalizedId, normalizedId]
     );
 
     if (rows.length === 0) {
-      return res.status(400).json({ message: "?????????????" });
+      return res.status(400).json({ message: 'ไม่พบข้อมูลผู้ใช้งาน' });
     }
 
     const user = rows[0];
 
     if (user.status === 'pending') {
-      return res.status(403).json({ message: '???????????????????????????????????' });
+      return res.status(403).json({ message: 'บัญชีของคุณยังรอการอนุมัติจากผู้ดูแลระบบ' });
     }
     if (user.status === 'suspended') {
-      return res.status(403).json({ message: '?????????????????????????' });
+      return res.status(403).json({ message: 'บัญชีของคุณถูกระงับการใช้งานชั่วคราว' });
     }
     if (user.status === 'rejected') {
-      return res.status(403).json({ message: '????????????????????????' });
+      return res.status(403).json({ message: 'คำขอสมัครของคุณถูกปฏิเสธ กรุณาติดต่อผู้ดูแลระบบ' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: "??????????????????" });
+      return res.status(401).json({ message: 'รหัสผ่านไม่ถูกต้อง' });
     }
 
     const token = jwt.sign(
       { id: user.id, st_id_canonical: user.st_id_canonical },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: '1d' }
     );
 
     await User.recordLogin(user.id);
 
+    const displayName = user.first_name_th || user.last_name_th
+      ? `${user.first_name_th || ''} ${user.last_name_th || ''}`.trim()
+      : user.email;
+
     res.json({
-      message: "?????????????????",
+      message: 'เข้าสู่ระบบสำเร็จ',
       token,
       user: {
         id: user.id,
         st_id_canonical: user.st_id_canonical,
-        name: `${user.first_name_th} ${user.last_name_th}`,
+        name: displayName,
         email: user.email,
         status: user.status,
       },
     });
   } catch (err) {
-    console.error("Login error:", err);
-    res.status(500).json({ message: "Server error" });
+    console.error('Login error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -120,7 +130,7 @@ const login = async (req, res) => {
 const logout = async (req, res) => {
   try {
     res.clearCookie("token");
-    res.json({ message: "????????????????" });
+    res.json({ message: "ออกจากระบบเรียบร้อย" });
   } catch (err) {
     console.error("Logout error:", err);
     res.status(500).json({ message: "Server error" });
@@ -153,7 +163,7 @@ const profile = async (req, res) => {
     );
 
     if (rows.length === 0) {
-      return res.status(404).json({ message: "????????????????" });
+      return res.status(404).json({ message: "ไม่พบบัญชีผู้ใช้" });
     }
 
     const user = rows[0];

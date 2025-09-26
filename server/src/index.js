@@ -8,6 +8,7 @@ const routes = require('./routes/index.js');
 const Admin = require('./models/Admin.js');
 const News = require('./models/News.js');
 const User = require('./models/User.js');
+const EmailBroadcast = require('./models/EmailBroadcast');
 require('dotenv').config();
 
 const app = express();
@@ -78,6 +79,7 @@ const initializeDatabase = async () => {
     }
 
     await News.createTable();
+    await EmailBroadcast.createTable();
     console.log('[DB] Database tables initialized successfully');
   } catch (error) {
     console.error('[DB] Database initialization failed:', error);
@@ -96,3 +98,5 @@ app.listen(PORT, async () => {
   console.info(`[Server] Running on port ${PORT}`);
   await initializeDatabase();
 });
+
+

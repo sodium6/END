@@ -22,6 +22,7 @@ import Analytics from './pages/admin/analytics/analytics';
 import AdminSettings from './pages/admin/settings/adminSettings';
 import UserFormPage from './pages/admin/users/UserFormPage';
 import NewsFormPage from './pages/admin/content/NewsFormPage';
+import EmailBroadcastPage from './pages/admin/communications/emailBroadcast';
 
 function App() {
   return (
@@ -50,6 +51,7 @@ function App() {
           <Route path="content/announcements" element={<Announcements />} />
           <Route path="content/announcements/create" element={<NewsFormPage />} />
           <Route path="content/announcements/edit/:id" element={<NewsFormPage />} />
+          <Route path="communications/email" element={<EmailBroadcastPage />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
