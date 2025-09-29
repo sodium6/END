@@ -16,6 +16,8 @@ const Template2 = ({ data, showSection, formatDate, toAbsUrl }) => {
     activities = [],
     sports = [],
   } = data || {};
+  const isImage = (s = "") =>
+    /\.(png|jpe?g|gif|webp|svg|bmp|tiff)$/i.test(String(s));
 
   return (
     <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 min-h-screen text-white">
@@ -25,29 +27,125 @@ const Template2 = ({ data, showSection, formatDate, toAbsUrl }) => {
           <div className="w-32 h-32 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center text-white text-5xl font-bold shadow-2xl mx-auto mb-8">
             {(user.first_name_th || user.first_name_en || "U").charAt(0)}
           </div>
-          
+
           <h1 className="text-6xl font-bold text-white mb-4">
             PORTFOLIO
           </h1>
-          
+
           <div className="w-24 h-1 bg-gradient-to-r from-emerald-500 to-teal-600 mx-auto mb-8"></div>
-          
+
           <h2 className="text-4xl font-bold text-emerald-400 mb-2">
             {user.first_name_th} {user.last_name_th}
           </h2>
           <h3 className="text-2xl text-gray-300 mb-6">
             {user.first_name_en} {user.last_name_en}
           </h3>
-          
+
           {user.st_id && (
             <p className="text-xl text-gray-300 mb-4">รหัสนิสิต: {user.st_id}</p>
           )}
-          
+
           {user.education && (
             <p className="text-lg text-gray-400">{user.education}</p>
           )}
         </div>
       </div>
+
+
+
+      {/* หน้าคำนำ - Dark Modern Preface Page */}
+      <div className="print-section min-h-screen p-8 print:px-[12mm] print:py-[14mm]">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-gray-800 rounded-3xl shadow-2xl p-10 border border-gray-700
+                    print-solid-800 print-card-border print:shadow-none">
+            {/* Modern Header */}
+            <div className="text-center mb-12">
+              <div className="flex items-center justify-center gap-4 mb-8">
+                <div className="w-16 h-0.5 bg-gradient-to-r from-transparent to-emerald-500"></div>
+                <h2 className="text-4xl font-bold text-white tracking-wider">คำนำ</h2>
+                <div className="w-16 h-0.5 bg-gradient-to-l from-transparent to-emerald-500"></div>
+              </div>
+            </div>
+
+            {/* Professional Introduction */}
+            <div className="grid lg:grid-cols-2 print-cols-2 gap-10 items-center mb-12">
+              {/* Profile Section */}
+              <div className="text-center lg:text-left">
+                <div className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full
+                          flex items-center justify-center text-white text-2xl font-bold shadow-2xl
+                          mx-auto lg:mx-0 mb-6">
+                  {(user.first_name_th || user.first_name_en || "U").charAt(0)}
+                </div>
+
+                <h3 className="text-2xl font-bold text-emerald-400 mb-2">
+                  {user.first_name_th} {user.last_name_th}
+                </h3>
+                <p className="text-lg text-gray-300 mb-4">
+                  {user.first_name_en} {user.last_name_en}
+                </p>
+
+                {user.st_id && (
+                  <div className="inline-block bg-emerald-600/20 border border-emerald-600/50 rounded-lg px-4 py-2 mb-4">
+                    <p className="text-emerald-400 font-medium">รหัสนิสิต: {user.st_id}</p>
+                  </div>
+                )}
+
+                {user.education && <p className="text-gray-400">{user.education}</p>}
+              </div>
+
+              {/* Introduction Text */}
+              <div className="space-y-6">
+                <div className="bg-gradient-to-r from-gray-700 to-gray-600 rounded-2xl p-6 border-l-4 border-emerald-500
+                          print:bg-gray-700">
+                  <h4 className="text-xl font-bold text-emerald-400 mb-4">Portfolio Overview</h4>
+                  <p className="text-gray-300 leading-relaxed">
+                    Portfolio นี้นำเสนอเส้นทางการเรียนรู้และประสบการณ์ที่หลากหลาย …
+                  </p>
+                </div>
+
+                <div className="bg-gradient-to-r from-emerald-600/10 to-teal-600/10 rounded-2xl p-6 border border-emerald-600/30
+                          print:bg-[#064e3b14]">
+                  <h4 className="text-xl font-bold text-white mb-4">Philosophy</h4>
+                  <p className="text-gray-300 leading-relaxed">
+                    ความเป็นเลิศไม่ได้เกิดจากความสมบูรณ์แบบ …
+                  </p>
+                </div>
+              </div>
+            </div>
+
+
+
+            {/* Mission Statement */}
+            <div className="text-center">
+              <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-8 shadow-2xl">
+                <div className="space-y-6">
+                  <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto">
+                    <div className="w-8 h-8 bg-white rounded-full"></div>
+                  </div>
+
+                  <blockquote className="text-xl font-medium text-white leading-relaxed italic">
+                    "Success is not final, failure is not fatal: it is the courage to continue that counts."
+                  </blockquote>
+
+                  <div className="space-y-2">
+                    <div className="w-12 h-0.5 bg-white/50 mx-auto"></div>
+                    <p className="font-bold text-lg text-emerald-100">
+                      {user.first_name_th} {user.last_name_th}
+                    </p>
+                    <p className="text-emerald-200 text-sm">
+                      Portfolio Creator
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+
+
 
       {/* หน้าข้อมูลส่วนตัว - Personal Info Page */}
       {showSection.personal && (
@@ -57,7 +155,7 @@ const Template2 = ({ data, showSection, formatDate, toAbsUrl }) => {
               <h2 className="text-4xl font-bold text-emerald-400 mb-8 text-center border-b border-gray-600 pb-6">
                 ข้อมูลส่วนตัว
               </h2>
-              
+
               <div className="flex flex-col md:flex-row items-start gap-8">
                 <div className="w-32 h-32 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-2xl mx-auto md:mx-0">
                   {(user.first_name_th || user.first_name_en || "U").charAt(0)}
@@ -74,9 +172,9 @@ const Template2 = ({ data, showSection, formatDate, toAbsUrl }) => {
                     <div className="mb-8">
                       <h5 className="text-lg font-semibold text-emerald-300 mb-3">เกี่ยวกับฉัน</h5>
                       <p
-      className="text-white-700 mx-auto max-w-3xl leading-relaxed whitespace-pre-line text-lg break-words px-4"
-      style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
-    >
+                        className="text-white-700 mx-auto max-w-3xl leading-relaxed whitespace-pre-line text-lg break-words px-4"
+                        style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+                      >
                         {user.user_desc || user.bio}
                       </p>
                     </div>
@@ -147,28 +245,38 @@ const Template2 = ({ data, showSection, formatDate, toAbsUrl }) => {
                         </p>
                       )}
 
-                      {Array.isArray(work.files) && work.files.length > 0 && (
-                        <div className="mt-4 space-y-2">
-                          {work.files.map((f, i) => {
-                            const href = toAbsUrl(f.url || f.filePath);
-                            const name = f.name || (f.filePath || "").split("/").pop();
-                            return (
-                              <a
-                                key={f.id || i}
-                                href={href}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="group flex items-center gap-2 rounded-lg border border-gray-500 px-3 py-2 hover:border-emerald-400 hover:bg-gray-600 text-gray-300"
-                                download
-                              >
-                                <FileIcon className="w-4 h-4 text-gray-400 group-hover:text-emerald-400" />
-                                <span className="text-sm truncate">{name}</span>
-                                <Download className="ml-auto w-4 h-4 text-gray-400 group-hover:text-emerald-400" />
-                              </a>
-                            );
-                          })}
-                        </div>
-                      )}
+{Array.isArray(work.files) && work.files.length > 0 && (
+  <div className="mt-6 grid xs:grid-cols-2 sm:grid-cols-3 gap-4">
+    {work.files.map((f, i) => {
+      const src  = toAbsUrl(f?.url || f?.filePath);
+      const name = f?.name || (f?.filePath || "").split("/").pop() || "";
+      const isImg = /\.(png|jpe?g|gif|webp|bmp|svg|tiff)$/i.test(src || name);
+      if (!isImg) return null; // ไม่ใช่รูป: ไม่ต้องแสดง
+
+      return (
+        <figure
+          key={f?.id || i}
+          className="
+            work-thumb no-break-inside
+            w-full aspect-square max-w-[260px]  /* ขนาดบนจอ */
+            rounded-xl overflow-hidden border border-gray-200 bg-white
+            grid place-items-center p-2
+          "
+        >
+          <img
+            src={src}
+            alt={name}
+            className="block w-full h-full object-contain"
+            loading="eager" decoding="sync" fetchpriority="high"
+            crossOrigin="anonymous" referrerPolicy="no-referrer-when-downgrade"
+            onError={(e)=>e.currentTarget.closest('figure')?.remove()}
+          />
+        </figure>
+      );
+    })}
+  </div>
+)}
+
                     </div>
                   ))}
                 </div>
@@ -216,32 +324,35 @@ const Template2 = ({ data, showSection, formatDate, toAbsUrl }) => {
                       )}
 
                       {Array.isArray(activity.photos) && activity.photos.length > 0 && (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 print-cols-2">
                           {activity.photos.map((p, j) => {
-                            const src = toAbsUrl(p.url || p.filePath);
-                            const alt = p.name || p.originalName || (p.filePath || "").split("/").pop() || "activity";
+                            const src = toAbsUrl(p?.url || p?.filePath);
+                            const alt =
+                              p?.name || p?.originalName || (p?.filePath || "").split("/").pop() || "activity";
+
                             return (
-                              <a
-                                key={p.id || j}
-                                href={src}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="block group"
-                              >
+                              <figure key={p?.id || j} className="block no-break-inside">
                                 <div className="aspect-[4/3] overflow-hidden rounded-lg border border-gray-600">
                                   <img
                                     src={src}
                                     alt={alt}
-                                    className="w-full h-full object-cover group-hover:opacity-90"
-                                    loading="lazy"
+                                    className="w-full h-full object-cover"
+                                    loading="eager"
+                                    decoding="sync"
+                                    crossOrigin="anonymous"
+                                    referrerPolicy="no-referrer-when-downgrade"
+                                    onError={(e) => {
+                                      const fig = e.currentTarget.closest("figure");
+                                      if (fig) fig.remove();
+                                    }}
                                   />
                                 </div>
-                                <div className="mt-2 text-sm text-gray-400 truncate">{alt}</div>
-                              </a>
+                              </figure>
                             );
                           })}
                         </div>
                       )}
+
                     </div>
                   ))}
                 </div>
@@ -298,6 +409,7 @@ const Template2 = ({ data, showSection, formatDate, toAbsUrl }) => {
           </div>
         </div>
       )}
+      
     </div>
   );
 };

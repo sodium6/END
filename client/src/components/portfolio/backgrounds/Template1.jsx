@@ -10,40 +10,121 @@ import {
   Award,
   ImageIcon,
   ExternalLink,
+
 } from "lucide-react";
 
 const Template1 = ({ data, showSection, formatDate, toAbsUrl }) => {
   const { personalInfo: user = {}, workExperiences: works = [], activities = [], sports = [] } = data || {};
-  
+  // เพิ่มไว้ด้านบนในฟังก์ชัน Template1 (ใต้ const {...} = data)
+  const isImage = (s = "") => /\.(png|jpe?g|gif|webp|svg)$/i.test(String(s));
+  const shortName = (name = "", max = 28) =>
+    name.length > max ? `${name.slice(0, max)}…` : name;
+
   return (
     <div className="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
       {/* หน้าปก - Cover Page */}
       <div className="print-cover min-h-screen flex items-center justify-center p-8">
-        <div className="text-center max-w-2xl mx-auto">
+        <div className="cover-content text-center max-w-2xl mx-auto">
           <div className="w-32 h-32 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-full flex items-center justify-center text-white text-5xl font-bold shadow-2xl mx-auto mb-8">
             {(user.first_name_th || user.first_name_en || "U").charAt(0)}
           </div>
-          
+
           <h1 className="text-6xl font-bold text-gray-900 mb-4">
             PORTFOLIO
           </h1>
-          
+
           <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-indigo-700 mx-auto mb-8"></div>
-          
+
           <h2 className="text-4xl font-bold text-blue-800 mb-2">
             {user.first_name_th} {user.last_name_th}
           </h2>
           <h3 className="text-2xl text-gray-600 mb-6">
             {user.first_name_en} {user.last_name_en}
           </h3>
-          
+
           {user.st_id && (
             <p className="text-xl text-gray-600 mb-4">รหัสนิสิต: {user.st_id}</p>
           )}
-          
+
           {user.education && (
             <p className="text-lg text-gray-600">{user.education}</p>
           )}
+        </div>
+      </div>
+
+      {/* หน้าคำนำ - Preface Page */}
+      <div className="print-section min-h-screen p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-3xl shadow-xl p-8 border-t-4 border-blue-600 h-full flex flex-col justify-center">
+            <h2 className="text-4xl font-bold text-blue-800 mb-8 text-center border-b pb-6">
+              คำนำ
+            </h2>
+
+            <div className="text-center space-y-8">
+              {/* <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-lg mx-auto">
+                {(user.first_name_th || user.first_name_en || "U").charAt(0)}
+              </div> */}
+
+              <div className="space-y-6 text-gray-700 leading-relaxed">
+                <p className="text-xl font-medium text-blue-800">
+                  Portfolio นี้รวบรวมประสบการณ์และผลงานที่สำคัญของฉัน
+                </p>
+
+                <p className="text-lg">
+                  ในฐานะ <span className="font-semibold text-blue-700">{user.first_name_th} {user.last_name_th}</span>
+                  {user.st_id && (
+                    <span> รหัสนิสิต {user.st_id}</span>
+                  )}
+                  {user.education && (
+                    <span> จาก{user.education}</span>
+                  )}
+                </p>
+
+                <p className="text-lg">
+                  Portfolio นี้ประกอบด้วยการรวบรวมประสบการณ์การทำงาน กิจกรรมต่างๆ ที่เข้าร่วม
+                  รวมถึงผลงานด้านกีฬาที่แสดงถึงความสามารถและการพัฒนาตนเองอย่างต่อเนื่อง
+                </p>
+
+                <div className="bg-blue-50 rounded-2xl p-6 my-8">
+                  <h3 className="text-xl font-bold text-blue-800 mb-4">เป้าหมาย</h3>
+                  <p className="text-gray-700">
+                    Portfolio นี้จัดทำขึ้นเพื่อแสดงถึงความสามารถ ทักษะ และประสบการณ์ที่ได้รับ
+                    เป็นเครื่องมือสำหรับการนำเสนอตัวตนและศักยภาพในการทำงานและการเรียนรู้
+                  </p>
+                </div>
+
+                {/* <div className="grid md:grid-cols-3 gap-6 mt-8">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto mb-3">
+                      {works.length}
+                    </div>
+                    <p className="font-semibold text-blue-800">ประสบการณ์การทำงาน</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto mb-3">
+                      {activities.length}
+                    </div>
+                    <p className="font-semibold text-green-800">กิจกรรมที่เข้าร่วม</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto mb-3">
+                      {sports.length}
+                    </div>
+                    <p className="font-semibold text-orange-800">ผลงานกีฬา</p>
+                  </div>
+                </div> */}
+
+                <div className="mt-8 pt-6 border-t border-blue-200">
+                  <p className="text-gray-600 italic">
+                    "การเรียนรู้และพัฒนาตนเองเป็นกระบวนการที่ไม่มีที่สิ้นสุด"
+                  </p>
+                  <p className="text-right text-blue-700 font-medium mt-2">
+                    {user.first_name_th} {user.last_name_th}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -55,11 +136,11 @@ const Template1 = ({ data, showSection, formatDate, toAbsUrl }) => {
               <h2 className="text-4xl font-bold text-blue-800 mb-8 text-center border-b pb-6">
                 ข้อมูลส่วนตัว
               </h2>
-              
+
               <div className="flex flex-col md:flex-row items-start gap-8">
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-lg mx-auto md:mx-0">
+                {/* <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-lg mx-auto md:mx-0">
                   {(user.first_name_th || user.first_name_en || "U").charAt(0)}
-                </div>
+                </div> */}
                 <div className="flex-1">
                   <h3 className="text-3xl font-bold text-gray-900 mb-2">
                     {user.first_name_th} {user.last_name_th}
@@ -72,9 +153,9 @@ const Template1 = ({ data, showSection, formatDate, toAbsUrl }) => {
                     <div className="mb-8">
                       <h5 className="text-lg font-semibold text-gray-800 mb-3">เกี่ยวกับฉัน</h5>
                       <p
-      className="text-gray-700 mx-auto max-w-3xl leading-relaxed whitespace-pre-line text-lg break-words px-4"
-      style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
-    >
+                        className="text-gray-700 mx-auto max-w-3xl leading-relaxed whitespace-pre-line text-lg break-words px-4"
+                        style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+                      >
                         {user.user_desc || user.bio}
                       </p>
                     </div>
@@ -99,15 +180,6 @@ const Template1 = ({ data, showSection, formatDate, toAbsUrl }) => {
                         </div>
                       </div>
                     </div>
-                    {/* <div className="bg-blue-50 rounded-2xl p-4">
-                      <div className="flex items-center gap-3 text-gray-800">
-                        <User className="w-6 h-6 text-blue-600" />
-                        <div>
-                          <p className="font-semibold">รหัสนิสิต</p>
-                          <p className="text-gray-600">{user.st_id || "-"}</p>
-                        </div>
-                      </div>
-                    </div> */}
                     <div className="bg-blue-50 rounded-2xl p-4">
                       <div className="flex items-center gap-3 text-gray-800">
                         <Award className="w-6 h-6 text-blue-600" />
@@ -160,28 +232,39 @@ const Template1 = ({ data, showSection, formatDate, toAbsUrl }) => {
                               <p className="text-gray-700 whitespace-pre-line text-lg leading-relaxed">{work.jobDescription}</p>
                             )}
 
-                            {Array.isArray(work.files) && work.files.length > 0 && (
-                              <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                {work.files.map((f, i) => {
-                                  const href = toAbsUrl(f.url || f.filePath);
-                                  const name = f.name || (f.filePath || "").split("/").pop();
-                                  return (
-                                    <a
-                                      key={f.id || i}
-                                      href={href}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className="group flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-3 hover:border-blue-300 hover:bg-blue-50"
-                                      download
-                                    >
-                                      <FileIcon className="w-5 h-5 text-gray-500 group-hover:text-blue-700" />
-                                      <span className="text-sm text-gray-700 truncate">{name}</span>
-                                      <Download className="ml-auto w-4 h-4 text-gray-400 group-hover:text-blue-700" />
-                                    </a>
-                                  );
-                                })}
-                              </div>
-                            )}
+{Array.isArray(work.files) && work.files.length > 0 && (
+  <div className="mt-6 grid xs:grid-cols-2 sm:grid-cols-3 gap-4">
+    {work.files.map((f, i) => {
+      const src  = toAbsUrl(f?.url || f?.filePath);
+      const name = f?.name || (f?.filePath || "").split("/").pop() || "";
+      const isImg = /\.(png|jpe?g|gif|webp|bmp|svg|tiff)$/i.test(src || name);
+      if (!isImg) return null; // ไม่ใช่รูป: ไม่ต้องแสดง
+
+      return (
+        <figure
+          key={f?.id || i}
+          className="
+            work-thumb no-break-inside
+            w-full aspect-square max-w-[260px]  /* ขนาดบนจอ */
+            rounded-xl overflow-hidden border border-gray-200 bg-white
+            grid place-items-center p-2
+          "
+        >
+          <img
+            src={src}
+            alt={name}
+            className="block w-full h-full object-contain"
+            loading="eager" decoding="sync" fetchpriority="high"
+            crossOrigin="anonymous" referrerPolicy="no-referrer-when-downgrade"
+            onError={(e)=>e.currentTarget.closest('figure')?.remove()}
+          />
+        </figure>
+      );
+    })}
+  </div>
+)}
+
+
                           </div>
                         </div>
                       </div>
@@ -220,34 +303,39 @@ const Template1 = ({ data, showSection, formatDate, toAbsUrl }) => {
                       {activity.description && (
                         <p className="text-gray-700 whitespace-pre-line leading-relaxed text-lg mb-4">{activity.description}</p>
                       )}
-                      
+
                       {Array.isArray(activity.photos) && activity.photos.length > 0 && (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                        // ให้กริดนี้ไหลเป็นคอลัมน์เดียวตอนพิมพ์ ป้องกันโดนตัด
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 print-flow">
                           {activity.photos.map((p, j) => {
-                            const src = toAbsUrl(p.url || p.filePath);
-                            const alt = p.name || p.originalName || (p.filePath || "").split("/").pop() || "activity";
+                            const src = toAbsUrl(p?.url || p?.filePath);
+                            const alt =
+                              p?.name || p?.originalName || (p?.filePath || "").split("/").pop() || "activity";
+
                             return (
-                              <a
-                                key={p.id || j}
-                                href={src}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="block group"
-                              >
+                              <figure key={p?.id || j} className="block no-break-inside">
                                 <div className="aspect-[4/3] overflow-hidden rounded-lg border border-gray-200">
                                   <img
                                     src={src}
                                     alt={alt}
-                                    className="w-full h-full object-cover group-hover:opacity-90"
-                                    loading="lazy"
+                                    className="w-full h-full object-cover"
+
+                                    loading="eager"
+                                    decoding="sync"
+                                    fetchpriority="high"
+                                    crossOrigin="anonymous"
+                                    referrerPolicy="no-referrer-when-downgrade"
+                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
                                   />
                                 </div>
-                                <div className="mt-2 text-sm text-gray-500 truncate">{alt}</div>
-                              </a>
+                                {/* ชื่อไฟล์ (สั้น) ใต้ภาพ ถ้าอยากโชว์ */}
+                                {/* <figcaption className="mt-2 text-sm text-gray-500 truncate">{alt}</figcaption> */}
+                              </figure>
                             );
                           })}
                         </div>
                       )}
+
                     </div>
                   ))}
                 </div>
@@ -289,7 +377,7 @@ const Template1 = ({ data, showSection, formatDate, toAbsUrl }) => {
                 </div>
               )}
             </div>
-            
+
             {/* สรุปทักษะ */}
             <div className="mt-8 bg-white rounded-3xl shadow-xl p-8">
               <h3 className="text-2xl font-bold text-purple-800 flex items-center gap-3 mb-6 text-center justify-center border-b pb-4">
