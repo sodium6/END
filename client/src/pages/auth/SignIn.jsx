@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../../services/authApi";
 import Swal from "sweetalert2";
@@ -124,6 +124,8 @@ export default function SignIn() {
             >
               สมัครสมาชิก
             </Link>
+
+            
           </div>
         </form>
 
@@ -134,8 +136,16 @@ export default function SignIn() {
             to="/sign-up"
             className="text-green-light font-medium hover:text-green-300 hover:underline"
           >
-            สมัครสมาชิก
+            สมัครสมาชิก{" "}
           </Link>
+
+          <Link
+            to="/admin/login"
+            className="text-green-light font-medium hover:text-green-300 hover:underline"
+          >
+            เข้าสู่ระบบผู้ดูแลระบบ
+          </Link>
+          
           <br />
           <span className="block mt-2">
             สำหรับนักศึกษาและศิษย์เก่าของมหาวิทยาลัยเทคโนโลยี่ราชมงคลเท่านั้น

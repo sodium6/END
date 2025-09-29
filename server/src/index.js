@@ -1,4 +1,3 @@
-// server/src/index.js
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -6,6 +5,10 @@ const path = require('path');
 const errorHandler = require('./middlewares/error-handler.js');
 const { NotFoundError } = require('./utils/error.js');
 const routes = require('./routes/index.js');
+const Admin = require('./models/Admin.js');
+const News = require('./models/News.js');
+const User = require('./models/User.js');
+const EmailBroadcast = require('./models/EmailBroadcast');
 require('dotenv').config();
 
 const app = express();
@@ -13,7 +16,7 @@ const app = express();
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(cors({
-  origin: ['http://localhost:5173','http://127.0.0.1:5173','http://localhost:5174','http://127.0.0.1:5174'],
+  origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174'],
   credentials: true,
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization','X-CSRF-Token'],
@@ -47,5 +50,54 @@ app.use((req, res, next) => {
 
 app.use(errorHandler);
 
+const initializeDatabase = async () => {
+  try {
+    console.log('[DB] Initializing database tables...');
+    const shouldResetNews = (`${process.env.RESET_NEWS_TABLE || ''}`.toLowerCase() === 'true');
+
+    if (shouldResetNews) {
+      try {
+        await News.dropIfExists?.();
+        console.log('[News] Existing table dropped because RESET_NEWS_TABLE=true');
+      } catch (err) {
+        console.warn('[News] Failed to drop table before recreate:', err.message);
+      }
+    } else {
+      console.log('[News] Preserving existing news table (set RESET_NEWS_TABLE=true to force drop)');
+    }
+
+    await User.createTable();
+    await Admin.createTable();
+
+    const defaultSuperAdmin = await Admin.ensureDefaultSuperAdmin();
+    if (defaultSuperAdmin?.created) {
+      console.log('[Admin] Default superadmin created with username:', process.env.DEFAULT_ADMIN_USERNAME || 'superadmin');
+    }
+
+    const defaultStaffAdmin = await Admin.ensureDefaultAdmin();
+    if (defaultStaffAdmin?.created) {
+      console.log('[Admin] Default admin created with username:', process.env.DEFAULT_STAFF_ADMIN_USERNAME || 'admin');
+    }
+
+    await News.createTable();
+    await EmailBroadcast.createTable();
+    console.log('[DB] Database tables initialized successfully');
+  } catch (error) {
+    console.error('[DB] Database initialization failed:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      errno: error.errno,
+      sqlState: error.sqlState,
+    });
+    process.exit(1);
+  }
+};
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.info(`Server is running on port: ${PORT}`));
+app.listen(PORT, async () => {
+  console.info(`[Server] Running on port ${PORT}`);
+  await initializeDatabase();
+});
+
+
