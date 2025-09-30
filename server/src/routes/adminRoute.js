@@ -7,6 +7,9 @@ const { listBroadcasts, sendBroadcast } = require('../controllers/admin/adminEma
 const { getAllNews, getNewsById, createNews, updateNews, deleteNews } = require('../controllers/admin/adminContentController');
 const { listMembers, getMemberById: getMember, updateMemberStatus, resetMemberPassword, deleteMember } = require('../controllers/admin/memberController');
 const { getSummary: getAnalyticsSummary } = require('../controllers/admin/adminAnalyticsController');
+
+const {  subscribersSummary,broadcastNews,  broadcastBulk, } = require('../controllers/admin/Email/emailController'); 
+
 const adminAuth = require('../middlewares/adminAuth-handler');
 const requireRole = require('../middlewares/adminRole-handler');
 
@@ -44,6 +47,30 @@ router.get('/news/:id', adminAuth, requireRole(['superadmin', 'admin']), getNews
 router.post('/news', adminAuth, requireRole(['superadmin', 'admin']), createNews);
 router.put('/news/:id', adminAuth, requireRole(['superadmin', 'admin']), updateNews);
 router.delete('/news/:id', adminAuth, requireRole(['superadmin', 'admin']), deleteNews);
+
+
+
+router.get(
+  '/email/subscribers/summary',
+  adminAuth,
+  requireRole(['superadmin', 'admin']),
+  subscribersSummary
+);
+
+router.post(
+  '/news/:id/broadcast',
+  adminAuth,
+  requireRole(['superadmin', 'admin']),
+  broadcastNews
+);
+
+
+router.post(
+  '/email/broadcast',
+  adminAuth,
+  requireRole(['superadmin', 'admin']),
+  broadcastBulk
+);
 
 module.exports = {
   path: 'admin',

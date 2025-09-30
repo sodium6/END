@@ -228,3 +228,89 @@ exports.listSubscribers = async (req, res) => {
     res.status(500).json({ message: "server_error" });
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const { sendMail } = require("../../../utils/mailer");
+
+// ช่วยตัดเป็นก้อนๆ เวลาส่ง
+function chunk(arr, size) {
+  const out = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+
+// เทมเพลต HTML ของอีเมลข่าว
+function buildNewsHTML(news) {
+  const img = news.featured_image_url
+    ? `${process.env.PUBLIC_BASE_URL || ''}${news.featured_image_url}`
+    : null;
+
+  return `
+  <div style="font-family:Arial, sans-serif; line-height:1.6; color:#111">
+    <h2 style="margin:0 0 12px">${news.title || '(ไม่มีหัวข้อ)'}</h2>
+    <p style="color:#666;margin:0 0 16px">
+      หมวดหมู่: ${news.category || 'ทั่วไป'} • วันที่: ${new Date(news.created_at).toLocaleString('th-TH')}
+    </p>
+    ${img ? `<img src="${img}" style="max-width:100%;border-radius:8px;margin:0 0 16px"/>` : ''}
+    <div style="white-space:pre-line">${(news.content || '').replace(/</g, '&lt;')}</div>
+  </div>
+  `;
+}
+
+/**
+ * POST /api/admin/news/:id/broadcast
+ * ส่งข่าวชิ้นนี้ให้ “ผู้สมัครรับข่าวสารทั้งหมด” ในตาราง newsletter_subscriptions
+ */
+exports.broadcastNews = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isInteger(id)) return res.status(400).json({ message: 'invalid_id' });
+
+    // ดึงข้อมูลข่าว
+    const [nRows] = await pool.query('SELECT * FROM news WHERE news_id = ?', [id]);
+    const news = nRows[0];
+    if (!news) return res.status(404).json({ message: 'not_found' });
+
+    // (ถ้าต้องการจะส่งเฉพาะ published)
+    // if (news.status !== 'published') return res.status(400).json({ message: 'news_not_published' });
+
+    // ดึงอีเมลผู้สมัครทั้งหมด
+    const [subs] = await pool.query('SELECT email FROM newsletter_subscriptions');
+    if (subs.length === 0) return res.json({ message: 'no_subscribers', sent: 0 });
+
+    const subject = `[PR] ${news.title || 'ข่าวประชาสัมพันธ์'}`;
+    const html = buildNewsHTML(news);
+
+    // ส่งเป็นชุดทาง BCC (ประหยัดจำนวนครั้ง; เหมาะกับ SMTP ฟรี)
+    const batches = chunk(subs.map(s => s.email), 50); // 50 ต่อชุด
+    let sent = 0, failed = 0;
+
+    for (const b of batches) {
+      try {
+        await sendMail({ bcc: b, subject, html });
+        sent += b.length;
+      } catch (e) {
+        failed += b.length;
+        console.error('[broadcast] batch failed:', e.message);
+      }
+    }
+
+    return res.json({ message: 'broadcast_done', total: subs.length, sent, failed });
+  } catch (e) {
+    console.error('[broadcast] failed:', e);
+    res.status(500).json({ message: 'broadcast_failed' });
+  }
+};
