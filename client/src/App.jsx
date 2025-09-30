@@ -13,7 +13,7 @@ import Portfolio from './pages/user/portfolio/portfolio';
 import PublicRelations from './pages/user/public_relations/public_relations';
 // import TemplatePort from './pages/user/template/templatePort';    
 import PortfolioView from './pages/user/template/portfolioView';
-
+import UniversalAnouncement from './pages/UniversalAnouncement/anouncement';
 // Admin Pages
 import AdminLogin from './pages/auth/adminLogin';
 import AdminDashboard from './pages/admin/dashboard/adminDashboard';
@@ -31,7 +31,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* USER ROUTES */}
-        <Route path="/" element={<SignIn />} />
+        <Route path="/sign-in" element={<SignIn />} />
         <Route path="/sign-up" element={<SignUp />} />
         <Route element={<IndexLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />     
@@ -40,9 +40,13 @@ function App() {
         {/* <Route path="/template" element={<TemplatePort />} /> */}
         
         </Route>
-        <Route path="/template/view" element={<PortfolioView />} />
-          <Route path="/" element={<SignIn />} />
-          <Route path="/sign-up" element={<SignUp />} />
+
+
+        <Route path="/" element={<UniversalAnouncement />} />
+          <Route path="/template/view" element={<PortfolioView />} />
+        
+    
+          
         {/* </Route> */}
    
         {/* ADMIN ROUTES */}

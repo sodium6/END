@@ -57,7 +57,7 @@ export default function SignUp() {
     try {
       const result = await registerUser(payload); // ✅ ใช้ service
       alert(result.message || "สมัครสมาชิกสำเร็จ");
-      navigate("/");
+      navigate("/sign-in");
     } catch (err) {
       console.error("Register error:", err);
       alert(err.response?.data?.message || "เกิดข้อผิดพลาดในการสมัครสมาชิก");

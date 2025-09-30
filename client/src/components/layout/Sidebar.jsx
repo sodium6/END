@@ -49,8 +49,8 @@ export default function Sidebar() {
   }, []);
 
   const handleLogout = async () => {
-    await logoutUser(); // ✅ เคลียร์ token + call API logout
-    navigate("/");
+    await logoutUser(); 
+    navigate("/sign-in");
   };
 
   return (

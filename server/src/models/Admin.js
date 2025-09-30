@@ -81,7 +81,7 @@ class Admin {
 
   static async ensureDefaultAdmin() {
     const username = process.env.DEFAULT_STAFF_ADMIN_USERNAME || 'admin';
-    const password = process.env.DEFAULT_STAFF_ADMIN_PASSWORD || 'Admin#123';
+    const password = process.env.DEFAULT_STAFF_ADMIN_PASSWORD || '1234567';
     const email = process.env.DEFAULT_STAFF_ADMIN_EMAIL || 'admin@example.com';
     const fullName = process.env.DEFAULT_STAFF_ADMIN_NAME || 'Content Administrator';
     const role = 'admin';
