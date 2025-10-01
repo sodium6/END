@@ -49,7 +49,7 @@ router.put('/news/:id', adminAuth, requireRole(['superadmin', 'admin']), updateN
 router.delete('/news/:id', adminAuth, requireRole(['superadmin', 'admin']), deleteNews);
 
 
-
+// สรุป subscribers
 router.get(
   '/email/subscribers/summary',
   adminAuth,
@@ -57,6 +57,7 @@ router.get(
   subscribersSummary
 );
 
+// ส่งข่าวเดี่ยว
 router.post(
   '/news/:id/broadcast',
   adminAuth,
@@ -64,7 +65,7 @@ router.post(
   broadcastNews
 );
 
-
+// ส่งหลายข่าว
 router.post(
   '/email/broadcast',
   adminAuth,
