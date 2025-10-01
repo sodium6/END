@@ -11,6 +11,108 @@ const RAW_MAIL_FROM = process.env.MAIL_FROM || ''; // รองรับ: "Name 
 
 /* ======================= HELPERS ======================= */
 
+const fs = require('fs');
+const path = require('path');
+const ROOT = process.cwd();
+
+function fileFromRelUrl(relUrl) {
+  if (!relUrl || /^https?:\/\//i.test(relUrl)) return null; // เป็น http(s) ไม่ต้องอ่านไฟล์
+  const abs = path.resolve(ROOT, relUrl.replace(/^\//, ''));
+  return fs.existsSync(abs) ? abs : null;
+}
+
+function buildSingleNewsEmail(req, news, message = '') {
+  const attachments = [];
+  let imgHtml = '';
+
+  if (news.featured_image_url) {
+    if (/^https?:\/\//i.test(news.featured_image_url)) {
+      // เป็น URL สาธารณะ
+      imgHtml = `
+        <div style="margin:12px 0">
+          <img src="${absUrl(req, news.featured_image_url)}"
+               alt="${escapeHtml(news.title)}"
+               style="max-width:100%;border-radius:8px;border:1px solid #eee"/>
+        </div>`;
+    } else {
+      // เป็นไฟล์ในเครื่อง → แนบเป็น CID
+      const absPath = fileFromRelUrl(news.featured_image_url);
+      if (absPath) {
+        const cid = `news-${news.news_id || 'item'}@inline`;
+        attachments.push({ filename: path.basename(absPath), path: absPath, cid });
+        imgHtml = `
+          <div style="margin:12px 0">
+            <img src="cid:${cid}" alt="${escapeHtml(news.title)}"
+                 style="max-width:100%;border-radius:8px;border:1px solid #eee"/>
+          </div>`;
+      }
+    }
+  }
+
+  const msg = message ? `<p style="white-space:pre-wrap">${escapeHtml(message)}</p><hr/>` : '';
+
+  const html = `
+  <div style="font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto;line-height:1.6;color:#111">
+    ${msg}
+    <h2 style="margin:0 0 6px 0">${escapeHtml(news.title)}</h2>
+    <div style="color:#555;font-size:12px;margin-bottom:8px">
+      หมวดหมู่: ${escapeHtml(news.category || 'ทั่วไป')} • อัปเดต: ${new Date(news.updated_at || news.created_at).toLocaleString('th-TH')}
+    </div>
+    ${imgHtml}
+    <div>${escapeHtml(news.content)}</div>
+    <hr style="margin-top:16px"/>
+    <div style="color:#666;font-size:12px">อีเมลนี้ถูกส่งจากระบบข่าวประชาสัมพันธ์</div>
+  </div>`;
+
+  return { html, attachments };
+}
+
+function buildMultiNewsEmail(req, list = [], message = '') {
+  const attachments = [];
+  const msg = message ? `<p style="white-space:pre-wrap">${escapeHtml(message)}</p><hr/>` : '';
+
+  const itemsHtml = list.map((n, i) => {
+    let img = '';
+    if (n.featured_image_url) {
+      if (/^https?:\/\//i.test(n.featured_image_url)) {
+        img = `<img src="${absUrl(req, n.featured_image_url)}"
+                    alt="${escapeHtml(n.title)}"
+                    style="max-width:100%;border-radius:8px;border:1px solid #eee;margin-bottom:8px"/>`;
+      } else {
+        const absPath = fileFromRelUrl(n.featured_image_url);
+        if (absPath) {
+          const cid = `news-${n.news_id || i}@inline`;
+          attachments.push({ filename: path.basename(absPath), path: absPath, cid });
+          img = `<img src="cid:${cid}" alt="${escapeHtml(n.title)}"
+                     style="max-width:100%;border-radius:8px;border:1px solid #eee;margin-bottom:8px"/>`;
+        }
+      }
+    }
+    return `
+      <div style="margin:18px 0">
+        <h3 style="margin:0 0 6px 0">${escapeHtml(n.title)}</h3>
+        <div style="color:#555;font-size:12px;margin-bottom:8px">
+          หมวดหมู่: ${escapeHtml(n.category || 'ทั่วไป')} • อัปเดต: ${new Date(n.updated_at || n.created_at).toLocaleString('th-TH')}
+        </div>
+        ${img}
+        <div>${escapeHtml(n.content)}</div>
+      </div>
+      <hr/>`;
+  }).join('');
+
+  const html = `
+  <div style="font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto;line-height:1.6;color:#111">
+    ${msg}
+    ${itemsHtml || '<p>ไม่มีรายการข่าว</p>'}
+    <div style="color:#666;font-size:12px;margin-top:12px">อีเมลนี้ถูกส่งจากระบบข่าวประชาสัมพันธ์</div>
+  </div>`;
+
+  return { html, attachments };
+}
+
+
+
+
 // ปิดบังอีเมลตอน log
 const mask = (e = '') => String(e).replace(/(.{2}).*(@.*)/, '$1***$2');
 
@@ -251,10 +353,10 @@ exports.subscribersSummary = async (req, res) => {
 };
 
 // ส่งข่าวเดี่ยว
+// เดี่ยว
 exports.broadcastNews = async (req, res) => {
   try {
-    const raw = req.params.id ?? req.params.news_id;
-    const id = Number(raw);
+    const id = Number(req.params.id ?? req.params.news_id);
     if (!Number.isInteger(id)) return res.status(400).json({ message: 'invalid_id' });
 
     const news = await getPublishedNewsById(id);
@@ -262,21 +364,31 @@ exports.broadcastNews = async (req, res) => {
 
     const message = (req.body?.message || '').toString();
     const subject = `ข่าวประชาสัมพันธ์: ${news.title}`;
-    const html = buildSingleNewsHtml(req, news, message);
+    const { html, attachments } = buildSingleNewsEmail(req, news, message);
 
-    const result = await sendToAllSubscribers({ subject, html });
-    res.json({ ok: true, news_id: id, ...result });
+    const transporter = await getTransporter();
+    const recipients = await getSubscribers();
+    let sent = 0, failed = 0;
+
+    for (const to of recipients) {
+      try {
+        await transporter.sendMail({ from: process.env.MAIL_FROM, to, subject, html, attachments });
+        sent++;
+      } catch {
+        failed++;
+      }
+    }
+    res.json({ ok: true, news_id: id, total: recipients.length, sent, failed });
   } catch (e) {
     console.error('[email] broadcastNews failed:', e);
     res.status(500).json({ message: 'broadcast_failed' });
   }
 };
 
-// ส่งข่าวหลายอัน
+// หลายข่าว
 exports.broadcastBulk = async (req, res) => {
   try {
-    const raw = Array.isArray(req.body?.news_ids) ? req.body.news_ids : [];
-    const ids = [...new Set(raw.map(Number).filter(Number.isInteger))]; // uniq + only ints
+    const ids = [...new Set((req.body?.news_ids || []).map(Number).filter(Number.isInteger))];
     if (ids.length === 0) return res.status(400).json({ message: 'news_ids_required' });
 
     const list = await getPublishedNewsByIds(ids);
@@ -284,12 +396,24 @@ exports.broadcastBulk = async (req, res) => {
 
     const message = (req.body?.message || '').toString();
     const subject = `ข่าวประชาสัมพันธ์ (${list.length} รายการ)`;
-    const html = buildMultiNewsHtml(req, list, message);
+    const { html, attachments } = buildMultiNewsEmail(req, list, message);
 
-    const result = await sendToAllSubscribers({ subject, html });
-    res.json({ ok: true, count: list.length, ids: list.map(x => x.news_id), ...result });
+    const transporter = await getTransporter();
+    const recipients = await getSubscribers();
+    let sent = 0, failed = 0;
+
+    for (const to of recipients) {
+      try {
+        await transporter.sendMail({ from: process.env.MAIL_FROM, to, subject, html, attachments });
+        sent++;
+      } catch {
+        failed++;
+      }
+    }
+    res.json({ ok: true, count: list.length, ids, total: recipients.length, sent, failed });
   } catch (e) {
     console.error('[email] broadcastBulk failed:', e);
     res.status(500).json({ message: 'broadcast_bulk_failed' });
   }
 };
+
