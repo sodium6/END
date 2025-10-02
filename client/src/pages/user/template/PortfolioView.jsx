@@ -21,6 +21,7 @@ import {
 import { jwtDecode } from "jwt-decode";
 import { getPortfolioData } from "../../../services/getPortfolioDataApi";
 import { useLocation, useSearchParams, useNavigate } from "react-router-dom";
+
 // Template Components
 import Template1 from "@/components/portfolio/backgrounds/Template1";
 import Template2 from "@/components/portfolio/backgrounds/Template2";
@@ -30,7 +31,7 @@ import ToggleSwitch from "@/components/portfolio/backgrounds/ToggleSwitch";
 export default function PortfolioView({ userId: propUserId }) {
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
   const navigate = useNavigate();
-  const goBack = () => navigate("/public-relations");
+  const goBack = () => navigate("/my-portfolio");
   const [printDebug, setPrintDebug] = useState(false);
 
   useEffect(() => {
@@ -127,221 +128,135 @@ export default function PortfolioView({ userId: propUserId }) {
   }, [userId]);
 
   // CSS เดียวใช้ทั้งหน้า และ inject ใน popup
-// PortfolioView.jsx
-
-const PRINT_CSS = `
-@media print {
-/* ——— PRINT helpers for the Dark Modern page ——— */
-#portfolio-print-area .print-section{
-  /* กันเนื้อหาชนขอบกระดาษ */
-  padding-top:14mm !important;
-  padding-bottom:14mm !important;
-  padding-left:12mm !important;
-  padding-right:12mm !important;
-}
-
-/* บังคับคอลัมน์ตอนพิมพ์ให้เท่าหน้าเว็บ */
-.print-cols-2{
-  display:grid !important;
-  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-  gap:2rem !important;
-}
-.print-cols-3{
-  display:grid !important;
-  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
-  gap:2rem !important;
-}
-
-/* ทำพื้นเข้ม/เส้นขอบให้ทึบตอนพิมพ์ (เลี่ยงซีด/โปร่ง) */
-.print-solid-800{ background:#1f2937 !important; }   /* เทียบ tailwind gray-800 */
-.print-card-border{ border-color:#374151 !important; }/* เทียบ tailwind gray-700 */
-
-/* ลดเอฟเฟกต์ที่เพี้ยนบน PDF */
-*[class*="shadow"]{ box-shadow:none !important; }
-*{ animation:none !important; transition:none !important; }
-
-/* กันโดนตัดครึ่ง */
-.print-avoid-break,
-.no-break-inside,
-figure,
-img{ break-inside:avoid; page-break-inside:avoid; }
-
-/* ให้สีตรงกับหน้าจอ */
-html,body{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-
-
-
-@media print {
-  .file-chip a { display: none !important; }
-}
-
-  #portfolio-print-area .page-break{
-    break-before: page !important;
-    page-break-before: always !important;
-    height:0; margin:0; border:0; padding:0;
-  }
-
-  /* ยูทิลิตี้ช่วยกันโดนตัดครึ่ง */
-  #portfolio-print-area .print\:break-inside-avoid{
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-  }
-
-  #portfolio-print-area .print-cover{
-    /* กรณีเบราว์เซอร์คิด 1vh = ความสูงหน้ากระดาษ */
-    height: 90vh !important;
-    min-height: 90vh !important;
-    
-    box-sizing: border-box;
-    
-    overflow: hidden; /* กันส่วนเกินผลักไปหน้าใหม่ */
-  }
-
-
-  /* ลดระยะห่าง/ขนาดตัวอักษรเฉพาะหน้าปกตอนพิมพ์ให้พอดีหน้า */
-  #portfolio-print-area .print-cover h1{
-    font-size: 42pt !important;
-    line-height: 1.05 !important;
-    margin: 0 0 6mm !important;
-  }
-  #portfolio-print-area .print-cover .w-24.h-1{
-    margin: 0 auto 5mm !important;
-  }
-  #portfolio-print-area .print-cover h2{
-    font-size: 26pt !important;
-    margin: 0 0 3mm !important;
-  }
-  #portfolio-print-area .print-cover h3{
-    font-size: 14pt !important;
-    margin: 0 0 4mm !important;
-  }
-  #portfolio-print-area .print-cover p{
-    margin: 0 0 3mm !important;
-  }
-
-  /* กันส่วนตกแต่ง absolute ไม่ให้ผลักเนื้อหา */
-  #portfolio-print-area .print-cover [class*="absolute"]{
-    pointer-events: none;
-  }
-  #portfolio-print-area .preface-grid{
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 2rem !important;          /* ปรับได้ตามต้องการ */
-  }
-  #portfolio-print-area .preface-grid > *{
-    break-inside: avoid; page-break-inside: avoid;
+  // PortfolioView.jsx
+  const PRINT_CSS = `
+  @media print {
+    /* ---------- พื้นฐานการพิมพ์ ---------- */
+    #portfolio-print-area .print-section{
+      padding-top:14mm !important;
+      padding-bottom:14mm !important;
+      padding-left:12mm !important;
+      padding-right:12mm !important;
+      break-before: page !important;
+      page-break-before: always !important;
+    }
+  
+    /* หน้าปก */
+    #portfolio-print-area .print-cover{
+      height: 90vh !important;
+      min-height: 90vh !important;
+      box-sizing: border-box;
+      overflow: hidden;
+      break-after: page !important;
+      page-break-after: always !important;
+      padding-top: 10mm !important;
+    }
+  
+    /* ส่วนแรกหลังปก ไม่ต้องบังคับขึ้นหน้าใหม่ซ้ำ */
+    #portfolio-print-area .print-cover + .print-section{
+      break-before: auto !important;
+      page-break-before: auto !important;
+      padding-top: 10mm !important;
+    }
+  
+    /* คอลัมน์ตอนพิมพ์ */
+    .print-cols-2{ display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:2rem !important; }
+    .print-cols-3{ display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)) !important; gap:2rem !important; }
+  
+    /* สี/เส้นขอบให้ทึบ */
+    .print-solid-800{ background:#1f2937 !important; }
+    .print-card-border{ border-color:#374151 !important; }
+  
+    /* ลดเอฟเฟกต์ */
+    *[class*="shadow"]{ box-shadow:none !important; }
+    *{ animation:none !important; transition:none !important; }
+  
+    /* กันโดนตัดครึ่ง */
+    .print-avoid-break,
+    .no-break-inside,
+    figure, img{
+      break-inside:avoid; page-break-inside:avoid;
+    }
+    #portfolio-print-area .print\\:break-inside-avoid{
+      break-inside:avoid !important; page-break-inside:avoid !important;
+    }
+  
+    /* ตัวคั่นขึ้นหน้าใหม่ */
+    #portfolio-print-area .page-break{
+      break-before: page !important;
+      page-break-before: always !important;
+      height:0; margin:0; border:0; padding:0;
+    }
+  
+    /* ไหลยาวเพื่อง่ายต่อการ break */
+    #portfolio-print-area .print-flow{ display:block !important; }
+    #portfolio-print-area .print-flow [class*="col-span"]{ display:block !important; width:100% !important; }
+  
+    /* สีตรงกับหน้าจอ */
+    html,body{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .screen-only{ display:none !important; }
+    .print-only{ display:block !important; }
+  
+    /* องค์ประกอบอื่น ๆ */
+    #portfolio-print-area figure,
+    #portfolio-print-area img,
+    #portfolio-print-area table{ break-inside:avoid; page-break-inside:avoid; }
+    #portfolio-print-area [class*="shadow"]{ box-shadow:none !important; }
+  
+    #portfolio-print-area .personal-cards{
+      display:grid !important; grid-template-columns:repeat(4,minmax(0,1fr)) !important; gap:1.5rem !important;
+    }
+  
+    /* Preface grid */
+    #portfolio-print-area .preface-grid{
+      display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:2rem !important;
+    }
+    #portfolio-print-area .preface-grid > *{ break-inside:avoid; page-break-inside:avoid; }
+  
+    /* ปิดลิงก์ใน file-chip */
+    .file-chip a{ display:none !important; }
+  
+    /* หน้าเอกสาร */
+    @page{ size:A4; margin:-5mm !important; }
+    #portfolio-print-area{ margin:0 !important; padding:0 !important; }
+  
+    /* ยกเลิกบังคับ break หลังบล็อคสุดท้าย + กัน ghost page */
+    #portfolio-print-area .print-cover:last-of-type,
+    #portfolio-print-area .print-section:last-of-type{
+      break-after:auto !important; page-break-after:auto !important;
+    }
+    #portfolio-print-area .page-break:last-child,
+    #portfolio-print-area .print-section:last-of-type > .page-break:last-child{
+      display:none !important;
+    }
+    #portfolio-print-area .print-section:last-of-type{
+      margin-bottom:0 !important; padding-bottom:0 !important;
+      border-bottom-width:0 !important; box-shadow:none !important; transform:none !important;
+    }
+  
+    /* ---------- OVERRIDE: print-section2 ---------- */
+    #portfolio-print-area .print-section.print-section2{
+      padding:22mm 12mm 12mm !important;   /* เพิ่มขอบบน */
+      break-before:auto !important;        /* ไม่บังคับขึ้นหน้าใหม่ซ้ำ */
+      page-break-before:auto !important;
+    }
+    #portfolio-print-area .print-cover + .print-section.print-section2{
+      padding:22mm 12mm 12mm !important;
+      break-before:auto !important; page-break-before:auto !important;
+    }
+    #portfolio-print-area .print-section.print-section2 [class*="sticky"],
+    #portfolio-print-area .print-section.print-section2 [class*="fixed"]{
+      position:static !important; top:auto !important;
+    }
   }
   
-  /* ให้สี/กราเดียนต์อยู่ครบ */
-  html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .screen-only { display: none !important; }
-  .print-only  { display: block !important; }
-
-
-  #portfolio-print-area .print-cover   { break-after: page; page-break-after: always;  padding-top: 10mm !important;  }
-  #portfolio-print-area .print-section { break-before: page; page-break-before: always;  padding-top: 10mm !important;  padding: 14mm 12mm 12mm !important;}
-
-  #portfolio-print-area .print-cover + .print-section {
-    break-before: auto !important; page-break-before: auto !important;  padding-top: 10mm !important;
+  /* ใช้ได้ทั้งจอและตอนพิมพ์: ชิปชื่อไฟล์ไม่ล้น */
+  #portfolio-print-area .file-chip{
+    display:inline-flex; align-items:center; max-width:100%;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
-
-  /* ให้กริดที่ opt-in ไหลยาว (เพื่อให้ break ทำงาน) */
-  #portfolio-print-area .print-flow { display: block !important; }
-  #portfolio-print-area .print-flow [class*="col-span"] {
-    display: block !important; width: 100% !important;
-  }
-
-
-  #portfolio-print-area .no-break-inside,
-  #portfolio-print-area figure,
-  #portfolio-print-area img,
-  #portfolio-print-area table { break-inside: avoid; page-break-inside: avoid; }
-
-  #portfolio-print-area [class*="shadow"] { box-shadow: none !important; }
-
-
-  #portfolio-print-area .personal-cards{
-    display: grid !important;
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    gap: 1.5rem !important;
-  }
-
-
-  @page { size: A4; margin: -5mm !important;  }
-  #portfolio-print-area { margin: 0 !important; padding: 0 !important; }
-
-  /* ---------- DEBUG PAGE BREAK GUIDES ---------- */
-  body.debug-print #portfolio-print-area .print-section::before {
-    content: "— PAGE BREAK —";
-    display: block;
-    margin: 4mm 0;
-    border-bottom: 1px dashed #FF3366;
-    text-align: center;
-    color: #FF3366;
-    font-size: 10pt;
-    opacity: .9;
-  }
-  /* ซ่อนเส้นของ “ส่วนแรกหลังปก” */
-  body.debug-print #portfolio-print-area .print-cover + .print-section::before {
-    content: none !important; display: none !important;
-  }
-
-  /* เส้นขอบบน/ล่างของทุกหน้า (ช่วยมองขอบกระดาษ) */
-  body.debug-print::before,
-  body.debug-print::after {
-    content: "";
-    position: fixed;
-    left: 0; right: 0; height: 0;
-    border-top: 1px dashed #FF3366;
-    z-index: 2147483647;
-  }
-  body.debug-print::before { top: 0; }
-  body.debug-print::after  { bottom: 0; }
-}
-
-/* ใช้ได้ทั้งจอและตอนพิมพ์: ชิปชื่อไฟล์ไม่ล้น */
-#portfolio-print-area .file-chip{
-  display: inline-flex;
-  align-items: center;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-
-
-
-/* 1) ยกเลิกการบังคับ break หลังบล็อคสุดท้าย */
-#portfolio-print-area .print-cover:last-of-type,
-#portfolio-print-area .print-section:last-of-type {
-  break-after: auto !important;
-  page-break-after: auto !important;   /* fallback */
-}
-
-/* ถ้ามี <hr class="page-break"> หรือ marker อื่น ๆ อย่าให้ตัวสุดท้ายทำงาน */
-#portfolio-print-area .page-break:last-child,
-#portfolio-print-area .print-section:last-of-type > .page-break:last-child {
-  display: none !important;
-}
-
-/* 2) กันโอเวอร์โฟลว์จิ๋ว ๆ ที่ทำให้เกิด ghost page */
-#portfolio-print-area .print-section:last-of-type {
-  margin-bottom: 0 !important;
-  padding-bottom: 0 !important;
-  border-bottom-width: 0 !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-
-/* 3) เซฟตี้: ตัดส่วนที่ล้นทั้งเอกสาร */
-#portfolio-print-area { overflow: hidden !important; }
-}
-
-
-
-
-`;
+  `;
+  
 
 
   // Print functions
@@ -447,15 +362,15 @@ html,body{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
     <div className="min-h-screen bg-slate-50/60 print:bg-white font-['Sarabun',sans-serif]">
       {/* Top bar (hidden on print) */}
       <div className="print:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-slate-200 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-3">
+        <div className="w-full px-4 md:px-8 py-3">
           <button
             onClick={goBack}
             className="group inline-flex items-center gap-2 rounded-xl px-4 py-2.5
-                       bg-slate-100 hover:bg-slate-200 active:scale-[.98] transition-all
-                       text-slate-700 hover:text-slate-900 font-medium shadow-sm"
+                 bg-slate-100 hover:bg-slate-200 active:scale-[.98] transition-all
+                 text-slate-700 hover:text-slate-900 font-medium shadow-sm"
           >
-            <ArrowLeft className="w-5 h-5 group-hover:translate-x-[-2px] transition-transform" />
-            <span>กลับไปหน้า Public Relations</span>
+            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
+            <span>กลับไปหน้า My portfolio</span>
           </button>
         </div>
       </div>
@@ -471,31 +386,28 @@ html,body{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
           <div className="grid grid-cols-1 gap-2 mb-4">
             <button
               onClick={() => setSelectedTemplate("template1")}
-              className={`p-3 rounded-lg text-sm font-medium transition-all ring-1 ${
-                selectedTemplate === "template1"
+              className={`p-3 rounded-lg text-sm font-medium transition-all ring-1 ${selectedTemplate === "template1"
                   ? "bg-blue-600 text-white ring-transparent shadow-md"
                   : "bg-slate-100 hover:bg-slate-200 text-slate-700 ring-slate-200"
-              }`}
+                }`}
             >
               Professional Blue
             </button>
             <button
               onClick={() => setSelectedTemplate("template2")}
-              className={`p-3 rounded-lg text-sm font-medium transition-all ring-1 ${
-                selectedTemplate === "template2"
+              className={`p-3 rounded-lg text-sm font-medium transition-all ring-1 ${selectedTemplate === "template2"
                   ? "bg-slate-800 text-white ring-transparent shadow-md"
                   : "bg-slate-100 hover:bg-slate-200 text-slate-700 ring-slate-200"
-              }`}
+                }`}
             >
               Dark Modern
             </button>
             <button
               onClick={() => setSelectedTemplate("template3")}
-              className={`p-3 rounded-lg text-sm font-medium transition-all ring-1 ${
-                selectedTemplate === "template3"
+              className={`p-3 rounded-lg text-sm font-medium transition-all ring-1 ${selectedTemplate === "template3"
                   ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white ring-transparent shadow-md"
                   : "bg-slate-100 hover:bg-slate-200 text-slate-700 ring-slate-200"
-              }`}
+                }`}
             >
               Creative Gradient
             </button>
@@ -558,13 +470,13 @@ html,body{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
               พิมพ์ / บันทึก PDF
             </button>
             <label className="flex items-center gap-2 text-sm text-slate-600">
-  <input
-    type="checkbox"
-    checked={printDebug}
-    onChange={(e) => setPrintDebug(e.target.checked)}
-  />
-  แสดงเส้นคั่นหน้า (debug)
-</label>
+              <input
+                type="checkbox"
+                checked={printDebug}
+                onChange={(e) => setPrintDebug(e.target.checked)}
+              />
+              แสดงเส้นคั่นหน้า (debug)
+            </label>
 
           </div>
 

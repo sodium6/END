@@ -1,37 +1,72 @@
 import React from "react";
 
-export default function StatsOverview({ overall, done, total, subjectsCount, gpa }) {
+/**
+ * แสดงสรุปเป็น "จำนวนรายการ" ต่อหมวด
+ * Props ที่รองรับ:
+ * - แบบใหม่: worksCount, activitiesCount, sportsCount, certificatesCount
+ * - แบบเดิม (fallback): subjectsCount (ถือเป็น worksCount)
+ */
+export default function StatsOverview({
+  worksCount,
+  activitiesCount,
+  sportsCount,
+  certificatesCount,
+  // legacy props (จะไม่ใช้ ถ้าแบบใหม่ถูกส่งมา)
+  subjectsCount,
+}) {
+  // Fallback ให้ทำงานได้กับโค้ดเก่า: ถ้าไม่ได้ส่ง worksCount มา ให้ใช้ subjectsCount แทน
+  const _works = typeof worksCount === "number" ? worksCount : (subjectsCount ?? 0);
+  const _activities = typeof activitiesCount === "number" ? activitiesCount : 0;
+  const _sports = typeof sportsCount === "number" ? sportsCount : 0;
+  const _certs = typeof certificatesCount === "number" ? certificatesCount : 0;
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {/* Overall Progress */}
-      <div className="bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-2xl p-6 shadow-lg">
-        <p className="text-emerald-100 text-sm font-medium">ความคืบหน้าโดยรวม</p>
-        <p className="text-3xl font-bold">{overall}%</p>
-        <div className="mt-3 h-2 bg-emerald-400 rounded-full">
-          <div className="h-2 bg-white/80 rounded-full" style={{ width: `${overall}%` }} />
-        </div>
-      </div>
+      {/* ประวัติงาน */}
+      <StatCard
+        title="ประวัติงาน"
+        value={_works}
+        from="from-emerald-500"
+        to="to-green-600"
+        hint="ทั้งหมด"
+      />
 
-      {/* Completed Tasks */}
-      <div className="bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-2xl p-6 shadow-lg">
-        <p className="text-blue-100 text-sm font-medium">งานที่เสร็จแล้ว</p>
-        <p className="text-3xl font-bold">{done}/{total}</p>
-        <div className="mt-3 h-2 bg-blue-400 rounded-full">
-          <div className="h-2 bg-white/80 rounded-full" style={{ width: `${Math.round((done/total)*100)}%` }} />
-        </div>
-      </div>
+      {/* กิจกรรม */}
+      <StatCard
+        title="กิจกรรมที่เคยเข้าร่วม"
+        value={_activities}
+        from="from-blue-500"
+        to="to-blue-700"
+        hint="ทั้งหมด"
+      />
 
-      {/* Subjects Count */}
-      <div className="bg-gradient-to-r from-purple-500 to-purple-700 text-white rounded-2xl p-6 shadow-lg">
-        <p className="text-purple-100 text-sm font-medium">วิชาที่ลงทะเบียน</p>
-        <p className="text-3xl font-bold">{subjectsCount}</p>
-      </div>
+      {/* กีฬา */}
+      <StatCard
+        title="กีฬาที่เคยเข้าร่วม"
+        value={_sports}
+        from="from-purple-500"
+        to="to-purple-700"
+        hint="ทั้งหมด"
+      />
 
-      {/* GPA */}
-      <div className="bg-gradient-to-r from-orange-400 to-orange-600 text-white rounded-2xl p-6 shadow-lg">
-        <p className="text-orange-100 text-sm font-medium">เกรดเฉลี่ย</p>
-        <p className="text-3xl font-bold">{gpa}</p>
-      </div>
+      {/* Certificates */}
+      <StatCard
+        title="Certificates"
+        value={_certs}
+        from="from-orange-400"
+        to="to-orange-600"
+        hint="ทั้งหมด"
+      />
+    </div>
+  );
+}
+
+function StatCard({ title, value, from, to, hint }) {
+  return (
+    <div className={`bg-gradient-to-r ${from} ${to} text-white rounded-2xl p-6 shadow-lg`}>
+      <p className="text-white/80 text-sm font-medium">{title}</p>
+      <p className="text-4xl font-extrabold mt-1 tabular-nums">{Number(value || 0)}</p>
+      {hint ? <p className="text-xs text-white/70 mt-1">{hint}</p> : null}
     </div>
   );
 }

@@ -11,6 +11,14 @@ import {
   Award,
 } from "lucide-react";
 
+const chunk = (arr = [], n = 2) =>
+  arr.reduce((acc, item, i) => {
+    if (i % n === 0) acc.push([item]);
+    else acc[acc.length - 1].push(item);
+    return acc;
+  }, []);
+
+
 const Template3 = ({ data, showSection, formatDate, toAbsUrl }) => {
   const { personalInfo: user = {}, workExperiences: works = [], activities = [], sports = [] } = data || {};
   // ตรวจรูป
@@ -204,7 +212,7 @@ const Template3 = ({ data, showSection, formatDate, toAbsUrl }) => {
             
             {/* Personal Quote Section */}
             <div className="text-center">
-              <div className="bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-3xl p-8 text-white shadow-2xl">
+              <div className="bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-3xl p-4 text-white shadow-2xl">
                 {/* <div className="mb-4">
                   <span className="text-6xl opacity-50">"</span>
                 </div> */}
@@ -218,9 +226,7 @@ const Template3 = ({ data, showSection, formatDate, toAbsUrl }) => {
                   </p>
                   <div className="w-12 h-0.5 bg-white/50"></div>
                 </div>
-                {user.st_id && (
-                  <p className="text-pink-200 text-sm mt-2">รหัสนิสิต {user.st_id}</p>
-                )}
+               
               </div>
             </div>
           </div>
@@ -293,141 +299,142 @@ const Template3 = ({ data, showSection, formatDate, toAbsUrl }) => {
 
         {/* หน้าประสบการณ์การทำงาน - Work Experience Page */}
         {showSection.works && (
-          <div className="print-section min-h-screen p-8">
-            <div className="max-w-5xl mx-auto">
-              <div className="bg-white rounded-3xl shadow-xl p-8">
-                <h2 className="text-4xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-4 mb-8 text-center justify-center border-b pb-6">
-                  <Briefcase className="w-10 h-10 text-purple-600" />
-                  ประสบการณ์การทำงาน
-                </h2>
-                {works.length === 0 ? (
-                  <div className="text-gray-500 text-center py-12 flex items-center justify-center gap-2">
-                    <ImageIcon className="w-6 h-6" />
-                    <span className="text-xl">ยังไม่มีประสบการณ์การทำงาน</span>
-                  </div>
-                ) : (
-                  <div className="space-y-8">
-                    {works.map((work, index) => (
-                      <div
-                        key={work.id || index}
-                        className={`rounded-3xl p-8 no-break-inside ${index % 2 === 0
-                          ? 'bg-gradient-to-r from-pink-50 to-rose-50 border-l-4 border-pink-500 mt-6'
-                          : 'bg-gradient-to-r from-purple-50 to-violet-50 border-l-4 border-purple-500 mt-6' 
-                          }`}
-                      >
-                        <h4 className="text-2xl font-bold text-gray-900 mb-2">{work.jobTitle || "-"}</h4>
-                        <p className="text-lg text-gray-600 mb-4">
-                          {formatDate(work.startDate)} - {formatDate(work.endDate)}
-                        </p>
-                        {work.jobDescription && (
-                          <p className="text-gray-700 whitespace-pre-line leading-relaxed text-lg">{work.jobDescription}</p>
-                        )}
+  <>
+    {chunk(works, 2).map((group, gi) => (
+      <div key={`works-page-${gi}`} className="print-section min-h-screen p-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="bg-white rounded-3xl shadow-xl p-8">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-4 mb-8 text-center justify-center border-b pb-6">
+              <Briefcase className="w-10 h-10 text-purple-600" />
+              ประสบการณ์การทำงาน
+            </h2>
 
-{Array.isArray(work.files) && work.files.length > 0 && (
-  <div className="mt-6 grid xs:grid-cols-2 sm:grid-cols-3 gap-4">
-    {work.files.map((f, i) => {
-      const src  = toAbsUrl(f?.url || f?.filePath);
-      const name = f?.name || (f?.filePath || "").split("/").pop() || "";
-      const isImg = /\.(png|jpe?g|gif|webp|bmp|svg|tiff)$/i.test(src || name);
-      if (!isImg) return null; // ไม่ใช่รูป: ไม่ต้องแสดง
+            <div className="space-y-8">
+              {group.map((work, index) => (
+                <div
+                  key={work.id || `${gi}-${index}`}
+                  className={`rounded-3xl p-8 no-break-inside ${
+                    (gi * 2 + index) % 2 === 0
+                      ? 'bg-gradient-to-r from-pink-50 to-rose-50 border-l-4 border-pink-500 mt-6'
+                      : 'bg-gradient-to-r from-purple-50 to-violet-50 border-l-4 border-purple-500 mt-6'
+                  }`}
+                >
+                  <h4 className="text-2xl font-bold text-gray-900 mb-2">
+                    {work.jobTitle || "-"}
+                  </h4>
+                  <p className="text-lg text-gray-600 mb-4">
+                    {formatDate(work.startDate)} - {formatDate(work.endDate)}
+                  </p>
+                  {work.jobDescription && (
+                    <p className="text-gray-700 whitespace-pre-line leading-relaxed text-lg">
+                      {work.jobDescription}
+                    </p>
+                  )}
 
-      return (
-        <figure
-          key={f?.id || i}
-          className="
-            work-thumb no-break-inside
-            w-full aspect-square max-w-[260px]  /* ขนาดบนจอ */
-            rounded-xl overflow-hidden border border-gray-200 bg-white
-            grid place-items-center p-2
-          "
-        >
-          <img
-            src={src}
-            alt={name}
-            className="block w-full h-full object-contain"
-            loading="eager" decoding="sync" fetchpriority="high"
-            crossOrigin="anonymous" referrerPolicy="no-referrer-when-downgrade"
-            onError={(e)=>e.currentTarget.closest('figure')?.remove()}
-          />
-        </figure>
-      );
-    })}
-  </div>
-)}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                  {Array.isArray(work.files) && work.files.length > 0 && (
+                    <div className="mt-6 grid xs:grid-cols-2 sm:grid-cols-3 gap-4">
+                      {work.files.map((f, i) => {
+                        const src  = toAbsUrl(f?.url || f?.filePath);
+                        const name = f?.name || (f?.filePath || "").split("/").pop() || "";
+                        const isImg = /\.(png|jpe?g|gif|webp|bmp|svg|tiff)$/i.test(src || name);
+                        if (!isImg) return null;
+                        return (
+                          <figure
+                            key={f?.id || i}
+                            className="work-thumb no-break-inside w-full aspect-square max-w-[260px]
+                                       rounded-xl overflow-hidden border border-gray-200 bg-white
+                                       grid place-items-center p-2"
+                          >
+                            <img
+                              src={src}
+                              alt={name}
+                              className="block w-full h-full object-contain"
+                              loading="eager" decoding="sync" fetchpriority="high"
+                              crossOrigin="anonymous" referrerPolicy="no-referrer-when-downgrade"
+                              onError={(e)=>e.currentTarget.closest('figure')?.remove()}
+                            />
+                          </figure>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
-        )}
+        </div>
+      </div>
+    ))}
+  </>
+)}
+
 
         {/* หน้ากิจกรรม - Activities Page */}
         {showSection.activities && (
-          <div className="print-section min-h-screen p-8">
-            <div className="max-w-5xl mx-auto">
-              <div className="bg-white rounded-3xl shadow-xl p-8">
-                <h2 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent flex items-center gap-4 mb-8 text-center justify-center border-b pb-6">
-                  <Users className="w-10 h-10 text-green-600" />
-                  กิจกรรม
-                </h2>
-                {activities.length === 0 ? (
-                  <div className="text-gray-500 text-center py-12 flex items-center justify-center gap-2">
-                    <ImageIcon className="w-6 h-6" />
-                    <span className="text-xl">ยังไม่มีกิจกรรม</span>
-                  </div>
-                ) : (
-                  <div className="space-y-8">
-                    {activities.map((activity, j) => (
-                      <div key={activity.id || j} className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-3xl p-8 border border-green-200 no-break-inside">
-                        <h4 className="text-2xl font-semibold text-gray-900 mb-2">{activity.name || "-"}</h4>
-                        <p className="text-green-700 font-medium text-lg mb-2">{activity.type || "-"}</p>
-                        <p className="text-lg text-gray-600 mb-4">
-                          {formatDate(activity.startDate)} - {formatDate(activity.endDate)}
-                        </p>
-                        {activity.description && (
-                          <p className="text-gray-700 leading-relaxed whitespace-pre-line text-lg mb-6">{activity.description}</p>
-                        )}
+  <>
+    {chunk(activities, 2).map((group, gi) => (
+      <div key={`acts-page-${gi}`} className="print-section p-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="bg-white rounded-3xl shadow-xl p-8">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent flex items-center gap-4 mb-8 text-center justify-center border-b pb-6">
+              <Users className="w-10 h-10 text-green-600" />
+              กิจกรรม
+            </h2>
 
-                        {Array.isArray(activity.photos) && activity.photos.length > 0 && (
-                          // ให้กริดนี้ไหลเป็นคอลัมน์เดียวตอนพิมพ์ (ไม่กระทบกริดอื่น)
-                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 print-flow">
-                            {activity.photos.map((p, k) => {
-                              const src = toAbsUrl(p.url || p.filePath);
-                              const alt =
-                                p.name || p.originalName || (p.filePath || "").split("/").pop() || "activity";
+            <div className="space-y-8">
+              {group.map((activity, j) => (
+                <div
+                  key={activity.id || `${gi}-${j}`}
+                  className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-3xl p-8 border border-green-200 no-break-inside"
+                >
+                  <h4 className="text-2xl font-semibold text-gray-900 mb-2">{activity.name || "-"}</h4>
+                  <p className="text-green-700 font-medium text-lg mb-2">{activity.type || "-"}</p>
+                  <p className="text-lg text-gray-600 mb-4">
+                    {formatDate(activity.startDate)} - {formatDate(activity.endDate)}
+                  </p>
+                  {activity.description && (
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-line text-lg mb-6">
+                      {activity.description}
+                    </p>
+                  )}
 
-                              return (
-                                <figure key={p.id || k} className="block group no-break-inside">
-                                  <div className="aspect-[4/3] overflow-hidden rounded-lg border border-gray-200">
-                                    <img
-                                      src={src}
-                                      alt={alt}
-                                      className="w-full h-full object-cover group-hover:opacity-90"
-                                      // ❗สำคัญ: บังคับโหลดภาพก่อนพิมพ์
-                                      loading="eager"
-                                      decoding="sync"
-                                      crossOrigin="anonymous"
-                                      referrerPolicy="no-referrer-when-downgrade"
-                                    />
-                                  </div>
-                                  {/* <figcaption className="mt-2 text-sm text-gray-500 truncate">{alt}</figcaption> */}
-                                </figure>
-                              );
-                            })}
-                          </div>
-                        )}
-
+{Array.isArray(activity.photos) && activity.photos.length > 0 && (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 print-cols-2">
+                        {activity.photos.map((p, j) => {
+                          const src = toAbsUrl(p?.url || p?.filePath);
+                          const alt =
+                            p?.name || p?.originalName || (p?.filePath || "").split("/").pop() || "activity";
+                          return (
+                            <figure key={p?.id || j} className="block no-break-inside">
+                              <div className="aspect-[4/3] overflow-hidden rounded-lg border border-gray-600">
+                                <img
+                                  src={src}
+                                  alt={alt}
+                                  className="w-full h-full object-cover"
+                                  loading="eager"
+                                  decoding="sync"
+                                  crossOrigin="anonymous"
+                                  referrerPolicy="no-referrer-when-downgrade"
+                                  onError={(e) => {
+                                    const fig = e.currentTarget.closest("figure");
+                                    if (fig) fig.remove();
+                                  }}
+                                />
+                              </div>
+                            </figure>
+                          );
+                        })}
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                    )}
+                </div>
+              ))}
             </div>
           </div>
-        )}
-
+        </div>
+      </div>
+    ))}
+  </>
+)}
         {/* หน้ากีฬา - Sports Page */}
         {showSection.sports && (
           <div className="print-section min-h-screen p-8">

@@ -9,6 +9,14 @@ import {
   ExternalLink,
 } from "lucide-react";
 
+const chunk = (arr = [], n = 2) =>
+  arr.reduce((acc, item, i) => {
+    if (i % n === 0) acc.push([item]);
+    else acc[acc.length - 1].push(item);
+    return acc;
+  }, []);
+
+
 const Template2 = ({ data, showSection, formatDate, toAbsUrl }) => {
   const {
     personalInfo: user = {},
@@ -212,25 +220,30 @@ const Template2 = ({ data, showSection, formatDate, toAbsUrl }) => {
       )}
 
       {/* หน้าประสบการณ์การทำงาน - Work Experience Page */}
-      {showSection.works && (
-        <div className="print-section min-h-screen p-8">
-          <div className="max-w-5xl mx-auto">
-            <div className="bg-gray-800 rounded-3xl shadow-2xl p-8 border border-gray-700">
-              <h2 className="text-4xl font-bold text-white flex items-center gap-4 mb-8 text-center justify-center border-b border-gray-600 pb-6">
-                <div className="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center">
-                  <Briefcase className="w-6 h-6" />
-                </div>
-                ประสบการณ์การทำงาน
-              </h2>
-              {works.length === 0 ? (
-                <div className="text-gray-400 text-center py-12">
-                  <span className="text-xl">ยังไม่มีประสบการณ์การทำงาน</span>
-                </div>
-              ) : (
-                <div className="grid md:grid-cols-2 gap-8">
-                  {works.map((work, idx) => (
+    {showSection.works && (
+  <>
+    {chunk(works, 2).map((group, gi) => (
+      <div key={`works-page-${gi}`} className="print-section p-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="bg-gray-800 rounded-3xl shadow-2xl p-8 border border-gray-700">
+            <h2 className="text-4xl font-bold text-white flex items-center gap-4 mb-8 text-center justify-center border-b border-gray-600 pb-6">
+              <div className="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center">
+                <Briefcase className="w-6 h-6" />
+              </div>
+              ประสบการณ์การทำงาน
+            </h2>
+
+            {group.length === 0 ? (
+              <div className="text-gray-400 text-center py-12">
+                <span className="text-xl">ยังไม่มีประสบการณ์การทำงาน</span>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-8">
+                {group.map((work, i) => {
+                  const absIndex = gi * 2 + i; // เลขลำดับจริงข้ามหน้า
+                  return (
                     <div
-                      key={work.id || idx}
+                      key={work.id || absIndex}
                       className="bg-gradient-to-br from-gray-700 to-gray-600 rounded-2xl p-6 border border-gray-600 hover:border-emerald-500 transition-all no-break-inside"
                     >
                       <h4 className="text-2xl font-semibold text-emerald-400 mb-2">
@@ -245,122 +258,150 @@ const Template2 = ({ data, showSection, formatDate, toAbsUrl }) => {
                         </p>
                       )}
 
-{Array.isArray(work.files) && work.files.length > 0 && (
-  <div className="mt-6 grid xs:grid-cols-2 sm:grid-cols-3 gap-4">
-    {work.files.map((f, i) => {
-      const src  = toAbsUrl(f?.url || f?.filePath);
-      const name = f?.name || (f?.filePath || "").split("/").pop() || "";
-      const isImg = /\.(png|jpe?g|gif|webp|bmp|svg|tiff)$/i.test(src || name);
-      if (!isImg) return null; // ไม่ใช่รูป: ไม่ต้องแสดง
-
-      return (
-        <figure
-          key={f?.id || i}
-          className="
-            work-thumb no-break-inside
-            w-full aspect-square max-w-[260px]  /* ขนาดบนจอ */
-            rounded-xl overflow-hidden border border-gray-200 bg-white
-            grid place-items-center p-2
-          "
-        >
-          <img
-            src={src}
-            alt={name}
-            className="block w-full h-full object-contain"
-            loading="eager" decoding="sync" fetchpriority="high"
-            crossOrigin="anonymous" referrerPolicy="no-referrer-when-downgrade"
-            onError={(e)=>e.currentTarget.closest('figure')?.remove()}
-          />
-        </figure>
-      );
-    })}
-  </div>
+                      {Array.isArray(work.files) && work.files.length > 0 && (
+                        <div
+                        key={work.id || idx}
+                        className="bg-gradient-to-br from-gray-700 to-gray-600 rounded-2xl p-6 border border-gray-600 hover:border-emerald-500 transition-all no-break-inside"
+                      >
+                        {/* แบ่ง 2 คอลัมน์: ข้อความซ้าย / รูปขวา (คอลัมน์ขวาแคบ) */}
+                        <div className="flex items-start gap-6">
+                      
+                      
+                    
+                      
+                          {/* คอลัมน์รูปด้านขวา: แคบ, ไม่ดันบรรทัด, กันโดนตัดครึ่ง */}
+                          {Array.isArray(work.files) && work.files.length > 0 && (
+                            <div
+                              className="
+                                no-break-inside shrink-0
+                                w-36 sm:w-40 print:w-32
+                                grid grid-cols-1 gap-2
+                              "
+                            >
+                              {work.files.slice(0, 2).map((f, i2) => {
+                                const src  = toAbsUrl(f?.url || f?.filePath);
+                                const name = f?.name || (f?.filePath || "").split("/").pop() || "";
+                                const isImg = /\.(png|jpe?g|gif|webp|bmp|svg|tiff)$/i.test(src || name);
+                                if (!isImg) return null;
+                      
+                                return (
+                                  <figure
+                                    key={f?.id || i2}
+                                    className="
+                                      work-thumb no-break-inside
+                                      w-full aspect-[3/4]
+                                      rounded-lg overflow-hidden border border-gray-200 bg-white
+                                      grid place-items-center p-1.5
+                                    "
+                                    title={name}
+                                  >
+                                    <img
+                                      src={src}
+                                      alt={name}
+                                      className="block w-full h-full object-contain"
+                                      loading="eager" decoding="sync" fetchpriority="high"
+                                      crossOrigin="anonymous" referrerPolicy="no-referrer-when-downgrade"
+                                      onError={(e)=>e.currentTarget.closest('figure')?.remove()}
+                                    />
+                                  </figure>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    ))}
+  </>
 )}
 
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+
+{showSection.activities && (
+  <>
+    {chunk(activities, 2).map((group, gi) => (
+      <div key={`acts-page-${gi}`} className="print-section  p-8">
+        <div className="max-5xl mx-auto">
+          <div className="bg-gray-800 rounded-3xl shadow-2xl p-8 border border-gray-700">
+            <h2 className="text-4xl font-bold text-white flex items-center gap-4 mb-8 text-center justify-center border-b border-gray-600 pb-6">
+              <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+                <Users className="w-6 h-6" />
+              </div>
+              กิจกรรม
+            </h2>
+
+            {group.length === 0 ? (
+              <div className="text-gray-400 text-center py-12">
+                <span className="text-xl">ยังไม่มีกิจกรรม</span>
+              </div>
+            ) : (
+              <div className="space-y-8">
+                {group.map((activity, i) => (
+                  <div
+                    key={activity.id || `${gi}-${i}`}
+                    className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl p-6 border border-blue-500/30 no-break-inside"
+                  >
+                    <h4 className="text-2xl font-semibold text-blue-400 mb-2">
+                      {activity.name || "-"}
+                    </h4>
+                    <p className="text-gray-300 text-lg mb-2">
+                      {activity.type || "-"}
+                    </p>
+                    <p className="text-gray-400 mb-4">
+                      {formatDate(activity.startDate)} - {formatDate(activity.endDate)}
+                    </p>
+                    {activity.description && (
+                      <p className="text-gray-300 leading-relaxed whitespace-pre-line text-lg mb-4">
+                        {activity.description}
+                      </p>
+                    )}
+
+                    {Array.isArray(activity.photos) && activity.photos.length > 0 && (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 print-cols-2">
+                        {activity.photos.map((p, j) => {
+                          const src = toAbsUrl(p?.url || p?.filePath);
+                          const alt =
+                            p?.name || p?.originalName || (p?.filePath || "").split("/").pop() || "activity";
+                          return (
+                            <figure key={p?.id || j} className="block no-break-inside">
+                              <div className="aspect-[4/3] overflow-hidden rounded-lg border border-gray-600">
+                                <img
+                                  src={src}
+                                  alt={alt}
+                                  className="w-full h-full object-cover"
+                                  loading="eager"
+                                  decoding="sync"
+                                  crossOrigin="anonymous"
+                                  referrerPolicy="no-referrer-when-downgrade"
+                                  onError={(e) => {
+                                    const fig = e.currentTarget.closest("figure");
+                                    if (fig) fig.remove();
+                                  }}
+                                />
+                              </div>
+                            </figure>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-      )}
-
-      {/* หน้ากิจกรรม - Activities Page */}
-      {showSection.activities && (
-        <div className="print-section min-h-screen p-8">
-          <div className="max-w-5xl mx-auto">
-            <div className="bg-gray-800 rounded-3xl shadow-2xl p-8 border border-gray-700">
-              <h2 className="text-4xl font-bold text-white flex items-center gap-4 mb-8 text-center justify-center border-b border-gray-600 pb-6">
-                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-                  <Users className="w-6 h-6" />
-                </div>
-                กิจกรรม
-              </h2>
-              {activities.length === 0 ? (
-                <div className="text-gray-400 text-center py-12">
-                  <span className="text-xl">ยังไม่มีกิจกรรม</span>
-                </div>
-              ) : (
-                <div className="space-y-8">
-                  {activities.map((activity, i) => (
-                    <div
-                      key={activity.id || i}
-                      className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl p-6 border border-blue-500/30 no-break-inside"
-                    >
-                      <h4 className="text-2xl font-semibold text-blue-400 mb-2">
-                        {activity.name || "-"}
-                      </h4>
-                      <p className="text-gray-300 text-lg mb-2">
-                        {activity.type || "-"}
-                      </p>
-                      <p className="text-gray-400 mb-4">
-                        {formatDate(activity.startDate)} - {formatDate(activity.endDate)}
-                      </p>
-                      {activity.description && (
-                        <p className="text-gray-300 leading-relaxed whitespace-pre-line text-lg mb-4">
-                          {activity.description}
-                        </p>
-                      )}
-
-                      {Array.isArray(activity.photos) && activity.photos.length > 0 && (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 print-cols-2">
-                          {activity.photos.map((p, j) => {
-                            const src = toAbsUrl(p?.url || p?.filePath);
-                            const alt =
-                              p?.name || p?.originalName || (p?.filePath || "").split("/").pop() || "activity";
-
-                            return (
-                              <figure key={p?.id || j} className="block no-break-inside">
-                                <div className="aspect-[4/3] overflow-hidden rounded-lg border border-gray-600">
-                                  <img
-                                    src={src}
-                                    alt={alt}
-                                    className="w-full h-full object-cover"
-                                    loading="eager"
-                                    decoding="sync"
-                                    crossOrigin="anonymous"
-                                    referrerPolicy="no-referrer-when-downgrade"
-                                    onError={(e) => {
-                                      const fig = e.currentTarget.closest("figure");
-                                      if (fig) fig.remove();
-                                    }}
-                                  />
-                                </div>
-                              </figure>
-                            );
-                          })}
-                        </div>
-                      )}
-
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      </div>
+    ))}
+  </>
+)}
 
       {/* หน้ากีฬา - Sports Page */}
       {showSection.sports && (
