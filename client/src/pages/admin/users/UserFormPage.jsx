@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { adminApi } from '../../../services/adminApi';
+import useAdminAuth from '../../../hooks/useAdminAuth';
 import { adminAccountSchema, generalAccountSchema } from '../../../schemas/admin';
 import UserForm from '../../../components/admin/forms/UserForm';
 
@@ -27,6 +28,8 @@ const INITIAL_STATE = {
 export default function UserFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { admin, loading: authLoading } = useAdminAuth();
+  const isSuperAdmin = admin?.role === 'superadmin';
   const [user, setUser] = useState(INITIAL_STATE);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -34,29 +37,37 @@ export default function UserFormPage() {
   const isEditing = !!id;
 
   useEffect(() => {
-    if (isEditing) {
-      setLoading(true);
-      adminApi
-        .getUserById(id)
-        .then((data) =>
-          setUser((prev) => ({
-            ...prev,
-            accountType: 'admin',
-            username: data.user.username,
-            full_name: data.user.full_name,
-            email: data.user.email,
-            role: data.user.role,
-            status: data.user.status || 'active',
-            password: '',
-          }))
-        )
-        .catch((err) => {
-          const message = err?.response?.data?.message || err.message || 'Failed to fetch user';
-          setError(message);
-        })
-        .finally(() => setLoading(false));
+    if (!authLoading && !isSuperAdmin) {
+      navigate('/admin/users', { replace: true });
     }
-  }, [id, isEditing]);
+  }, [authLoading, isSuperAdmin, navigate]);
+
+  useEffect(() => {
+    if (!isEditing || !isSuperAdmin) {
+      return;
+    }
+
+    setLoading(true);
+    adminApi
+      .getUserById(id)
+      .then((data) =>
+        setUser((prev) => ({
+          ...prev,
+          accountType: 'admin',
+          username: data.user.username,
+          full_name: data.user.full_name,
+          email: data.user.email,
+          role: data.user.role,
+          status: data.user.status || 'active',
+          password: '',
+        }))
+      )
+      .catch((err) => {
+        const message = err?.response?.data?.message || err.message || 'Failed to fetch user';
+        setError(message);
+      })
+      .finally(() => setLoading(false));
+  }, [id, isEditing, isSuperAdmin]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -129,6 +140,14 @@ export default function UserFormPage() {
       setLoading(false);
     }
   };
+
+  if (authLoading) {
+    return <div className="p-6 text-gray-500">Loading...</div>;
+  }
+
+  if (!isSuperAdmin) {
+    return null;
+  }
 
   return (
     <div className="p-6">

@@ -221,13 +221,13 @@ export default function AdminDashboard() {
           <p className="mt-1 text-gray-500">ภาพรวมสถานะล่าสุดของระบบสมาชิกและข่าวสาร</p>
         </div>
         <div className="flex items-center space-x-4">
-          <button
+          {/* <button
             type="button"
             onClick={handleNavigate('/admin/analytics')}
             className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-300 hover:bg-blue-700"
           >
             เปิดหน้า Analytics
-          </button>
+          </button> */}
           <FiBell className="h-6 w-6 cursor-pointer text-gray-500" aria-label="การแจ้งเตือน" />
         </div>
       </div>

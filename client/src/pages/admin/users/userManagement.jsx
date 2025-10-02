@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import useAdminAuth from '../../../hooks/useAdminAuth';
 import { adminApi } from '../../../services/adminApi';
 import UserTable from '../../../components/admin/tables/UserTable';
 import MemberTable from '../../../components/admin/tables/MemberTable';
@@ -15,6 +16,8 @@ const MEMBER_STATUS_OPTIONS = [
 
 export default function UserManagement() {
   const navigate = useNavigate();
+  const { admin } = useAdminAuth();
+  const isSuperAdminAccount = admin?.role === 'superadmin';
 
   const [view, setView] = useState('admin'); // 'admin' | 'member'
 
@@ -165,7 +168,7 @@ export default function UserManagement() {
     return (
       <div className="flex items-center justify-between p-4">
         <span className="text-sm text-gray-500">
-          Total {totalCount} items • Page {currentPage} of {totalPages}
+          Total {totalCount} items ï¿½ Page {currentPage} of {totalPages}
         </span>
         <div className="flex gap-2">
           <button
@@ -243,19 +246,21 @@ export default function UserManagement() {
           )}
         </div>
 
-        <Link
-          to="/admin/users/create"
-          className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          + New Account
-        </Link>
+        {isSuperAdminAccount && (
+          <Link
+            to="/admin/users/create"
+            className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            + New Account
+          </Link>
+        )}
       </div>
 
       {isAdminView ? (
         <>
           {adminError && <div className="text-red-600">{adminError}</div>}
           {adminLoading ? (
-            <div className="py-12 text-center text-gray-500">Loading admin accounts…</div>
+            <div className="py-12 text-center text-gray-500">Loading admin accountsï¿½</div>
           ) : (
             <>
               <UserTable users={adminUsers} onEdit={handleEditAdmin} onDelete={handleDeleteAdmin} />
@@ -267,7 +272,7 @@ export default function UserManagement() {
         <>
           {memberError && <div className="text-red-600">{memberError}</div>}
           {memberLoading ? (
-            <div className="py-12 text-center text-gray-500">Loading members…</div>
+            <div className="py-12 text-center text-gray-500">Loading membersï¿½</div>
           ) : (
             <>
               <MemberTable

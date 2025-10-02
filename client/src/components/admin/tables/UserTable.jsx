@@ -49,12 +49,14 @@ const UserTable = ({ users, onEdit, onDelete }) => {
               </td>
               <td className="px-4 py-3">{user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}</td>
               <td className="px-4 py-3 text-right space-x-2">
-                <button
+
+                {/* <button
                   onClick={() => navigate(`/admin/users/${user.id}`)}
                   className="px-3 py-1.5 rounded border text-gray-600 hover:bg-gray-100"
                 >
                   View
-                </button>
+                </button> */}
+                
                 <button
                   onClick={() => onEdit(user.id)}
                   className="px-3 py-1.5 rounded border text-blue-600 hover:bg-blue-50"
