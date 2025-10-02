@@ -40,7 +40,7 @@ const login = async (req, res) => {
         try {
           const newHash = await bcrypt.hash(password, 10);
           await pool.execute('UPDATE admins SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE admin_id = ?', [newHash, admin.admin_id]);
-          console.log(`[Security] Upgraded password for admin: ${admin.username}`);
+          // console.log(`[Security] Upgraded password for admin: ${admin.username}`);
         } catch (rehashErr) {
           console.warn('Failed to rehash legacy admin password:', rehashErr.message);
         }

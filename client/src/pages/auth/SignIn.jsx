@@ -143,7 +143,13 @@ export default function SignIn() {
             to="/admin/login"
             className="text-green-light font-medium hover:text-green-300 hover:underline"
           >
-            เข้าสู่ระบบผู้ดูแลระบบ
+            เข้าสู่ระบบผู้ดูแลระบบ{" "}
+          </Link>
+          <Link
+            to="/reset-password"
+            className="text-green-light font-medium hover:text-green-300 hover:underline"
+          >
+            ลืมรหัสผ่าน
           </Link>
           
           <br />

@@ -8,12 +8,14 @@ import RequireAdminAuth from './components/admin/layout/RequireAdminAuth';
 // User Pages
 import SignIn from './pages/auth/Signin';
 import SignUp from './pages/auth/SignUp';
+import ResetPassword from './pages/auth/resetpassword';
 import Dashboard from './pages/user/dashboard/dashboard';
 import Portfolio from './pages/user/portfolio/portfolio';
 import PublicRelations from './pages/user/public_relations/public_relations';
 // import TemplatePort from './pages/user/template/templatePort';    
 import PortfolioView from './pages/user/template/portfolioView';
 import UniversalAnouncement from './pages/UniversalAnouncement/anouncement';
+import Certificate from './pages/user/certificate/certificate';
 // Admin Pages
 import AdminLogin from './pages/auth/adminLogin';
 import AdminDashboard from './pages/admin/dashboard/adminDashboard';
@@ -26,6 +28,7 @@ import UserFormPage from './pages/admin/users/UserFormPage';
 import NewsFormPage from './pages/admin/content/NewsFormPage';
 import EmailBroadcastPage from './pages/admin/communications/emailBroadcast';
 
+
 function App() {
   return (
     <BrowserRouter>
@@ -37,6 +40,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />     
         <Route path="/my-portfolio" element={<Portfolio />} />     
         <Route path="/public-relations" element={<PublicRelations />} />
+        <Route path="/certificate" element={<Certificate />} />
         {/* <Route path="/template" element={<TemplatePort />} /> */}
         
         </Route>
@@ -44,7 +48,7 @@ function App() {
 
         <Route path="/" element={<UniversalAnouncement />} />
           <Route path="/template/view" element={<PortfolioView />} />
-        
+        <Route path="/reset-password" element={<ResetPassword />} />
     
           
         {/* </Route> */}

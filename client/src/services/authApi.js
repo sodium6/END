@@ -38,3 +38,31 @@ export const getProfile = async () => {
     }
     localStorage.removeItem("token");
   };
+
+
+
+  export const requestOtp = async (stIdCanonical) => {
+    const { data } = await api.post("/auth/requestOtp", {
+      st_id_canonical: stIdCanonical,
+    });
+    return data; // { ok: true, message: 'otp_sent' }
+  };
+  
+  /** ยืนยัน OTP -> ได้ reset_token กลับมา */
+  export const verifyOtp = async (stIdCanonical, otp) => {
+    const { data } = await api.post("/auth/verifyOtp", {
+      st_id_canonical: stIdCanonical,
+      otp,
+    });
+    return data; // { ok: true, reset_token, reset_token_expires }
+  };
+  
+  /** ตั้งรหัสผ่านใหม่ด้วย reset_token */
+  export const resetPassword = async (stIdCanonical, resetToken, newPassword) => {
+    const { data } = await api.post("/auth/resetPassword", {
+      st_id_canonical: stIdCanonical,
+      reset_token: resetToken,
+      new_password: newPassword,
+    });
+    return data; // { ok: true, message: 'password_updated' }
+  };

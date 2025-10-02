@@ -52,18 +52,18 @@ app.use(errorHandler);
 
 const initializeDatabase = async () => {
   try {
-    console.log('[DB] Initializing database tables...');
+    // console.log('[DB] Initializing database tables...');
     const shouldResetNews = (`${process.env.RESET_NEWS_TABLE || ''}`.toLowerCase() === 'true');
 
     if (shouldResetNews) {
       try {
         await News.dropIfExists?.();
-        console.log('[News] Existing table dropped because RESET_NEWS_TABLE=true');
+        // console.log('[News] Existing table dropped because RESET_NEWS_TABLE=true');
       } catch (err) {
-        console.warn('[News] Failed to drop table before recreate:', err.message);
+        // console.warn('[News] Failed to drop table before recreate:', err.message);
       }
     } else {
-      console.log('[News] Preserving existing news table (set RESET_NEWS_TABLE=true to force drop)');
+      // console.log('[News] Preserving existing news table (set RESET_NEWS_TABLE=true to force drop)');
     }
 
     await User.createTable();
@@ -71,19 +71,19 @@ const initializeDatabase = async () => {
 
     const defaultSuperAdmin = await Admin.ensureDefaultSuperAdmin();
     if (defaultSuperAdmin?.created) {
-      console.log('[Admin] Default superadmin created with username:', process.env.DEFAULT_ADMIN_USERNAME || 'superadmin');
+      // console.log('[Admin] Default superadmin created with username:', process.env.DEFAULT_ADMIN_USERNAME || 'superadmin');
     }
 
     const defaultStaffAdmin = await Admin.ensureDefaultAdmin();
     if (defaultStaffAdmin?.created) {
-      console.log('[Admin] Default admin created with username:', process.env.DEFAULT_STAFF_ADMIN_USERNAME || 'admin');
+      // console.log('[Admin] Default admin created with username:', process.env.DEFAULT_STAFF_ADMIN_USERNAME || 'admin');
     }
 
     await News.createTable();
     await EmailBroadcast.createTable();
-    console.log('[DB] Database tables initialized successfully');
+    // console.log('[DB] Database tables initialized successfully');
   } catch (error) {
-    console.error('[DB] Database initialization failed:', error);
+    // console.error('[DB] Database initialization failed:', error);
     console.error('Error details:', {
       message: error.message,
       code: error.code,
