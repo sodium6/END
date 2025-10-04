@@ -107,30 +107,30 @@ export default function Sidebar() {
               <span className="text-sm">My Portfolio</span>
             </Link>
           </li>
-          <li>
+          {/* <li>
             <Link
               to="/public-relations"
               className="w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100"
             >
               <span className="text-sm">ประชาสัมพันธ์</span>
             </Link>
-          </li>
-          <li>
+          </li> */}
+          {/* <li>
             <Link
               to="/template/view"
               className="w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100"
             >
               <span className="text-sm">template</span>
             </Link>
-          </li>
-          <li>
+          </li> */}
+          {/* <li>
             <Link
               to="/certificate"
               className="w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100"
             >
               <span className="text-sm">certificate</span>
             </Link>
-          </li>
+          </li> */}
 
        
         </ul>
