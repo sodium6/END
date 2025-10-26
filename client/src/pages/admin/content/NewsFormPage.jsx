@@ -85,7 +85,7 @@ export default function NewsFormPage() {
     adminApi
       .getNewsById(id)
       .then((data) => {
-        if (!data?.news) throw new Error('News article not found');
+        if (!data?.news) throw new Error('ไม่พบบทความข่าว');
         const incoming = data.news;
         setNewsItem((prev) => ({
           ...prev,
@@ -99,7 +99,7 @@ export default function NewsFormPage() {
         }));
       })
       .catch((err) => {
-        const message = err?.response?.data?.message || err.message || 'Failed to fetch news article';
+        const message = err?.response?.data?.message || err.message || 'ไม่สามารถดึงข้อมูลบทความข่าวได้';
         setError(message);
       })
       .finally(() => setLoading(false));
@@ -147,7 +147,7 @@ export default function NewsFormPage() {
         ? '/admin/content/announcements'
         : '/admin/content/news');
     } catch (err) {
-      const message = err?.response?.data?.message || err.message || 'An error occurred.';
+      const message = err?.response?.data?.message || err.message || 'เกิดข้อผิดพลาด';
       setError(message);
     } finally {
       setLoading(false);
@@ -158,8 +158,8 @@ export default function NewsFormPage() {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">
         {isEditing
-          ? (isAnnouncementRoute ? 'Edit Announcement' : 'Edit News Article')
-          : (isAnnouncementRoute ? 'Create Announcement' : 'Create News Article')}
+          ? (isAnnouncementRoute ? 'แก้ไขประกาศ' : 'แก้ไขบทความข่าว')
+          : (isAnnouncementRoute ? 'สร้างประกาศ' : 'สร้างบทความข่าว')}
       </h1>
 
       <NewsForm

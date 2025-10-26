@@ -98,7 +98,7 @@ exports.createUser = async (req, res) => {
 
       const [stidExists] = await pool.execute('SELECT id FROM users WHERE st_id_canonical = ? LIMIT 1', [payload.st_id_canonical]);
       if (stidExists.length > 0) {
-        return res.status(409).json({ message: 'Student ID already exists' });
+        return res.status(409).json({ message: 'รหัสนักศึกษาซ้ำ' });
       }
 
       const [result] = await pool.execute(

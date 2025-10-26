@@ -51,7 +51,7 @@ export default function UserFormPage() {
           }))
         )
         .catch((err) => {
-          const message = err?.response?.data?.message || err.message || 'Failed to fetch user';
+          const message = err?.response?.data?.message || err.message || 'ไม่สามารถดึงข้อมูลผู้ใช้ได้';
           setError(message);
         })
         .finally(() => setLoading(false));
@@ -101,7 +101,7 @@ export default function UserFormPage() {
         };
 
         if (!isEditing && !adminPayload.password) {
-          throw new Error('Password is required when creating a user');
+          throw new Error('ต้องระบุรหัสผ่านเมื่อสร้างผู้ใช้');
         }
 
         const validation = adminAccountSchema.safeParse(adminPayload);
@@ -123,7 +123,7 @@ export default function UserFormPage() {
 
       navigate('/admin/users');
     } catch (err) {
-      const message = err?.response?.data?.message || err.message || 'An error occurred.';
+      const message = err?.response?.data?.message || err.message || 'เกิดข้อผิดพลาด';
       setError(message);
     } finally {
       setLoading(false);
@@ -132,7 +132,7 @@ export default function UserFormPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">{isEditing ? 'Edit User' : 'Create User'}</h1>
+      <h1 className="text-2xl font-bold mb-6">{isEditing ? 'แก้ไขผู้ใช้' : 'สร้างผู้ใช้'}</h1>
       <UserForm
         user={user}
         setUser={setUser}

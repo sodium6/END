@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 
 const categoryOptions = [
-  { value: 'news', label: 'News' },
-  { value: 'announcement', label: 'Announcement' },
+  { value: 'news', label: 'ข่าว' },
+  { value: 'announcement', label: 'ประกาศ' },
 ];
 
 const NewsForm = ({
@@ -74,7 +74,7 @@ const NewsForm = ({
       {error && <div className="text-red-500 bg-red-100 p-3 rounded">{error}</div>}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Title</label>
+        <label className="block text-sm font-medium text-gray-700">หัวข้อ</label>
         <input
           type="text"
           name="title"
@@ -86,7 +86,7 @@ const NewsForm = ({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Content</label>
+        <label className="block text-sm font-medium text-gray-700">เนื้อหา</label>
         <textarea
           name="content"
           rows="10"
@@ -98,7 +98,7 @@ const NewsForm = ({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Category</label>
+        <label className="block text-sm font-medium text-gray-700">หมวดหมู่</label>
         <select
           name="category"
           value={currentCategory}
@@ -106,7 +106,7 @@ const NewsForm = ({
           disabled={categoryLocked}
           className="mt-1 block w-full px-3 py-2 border rounded-md disabled:bg-gray-100"
         >
-          <option value="" disabled>Select category</option>
+          <option value="" disabled>เลือกหมวดหมู่</option>
           {categoryOptions.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
@@ -116,27 +116,27 @@ const NewsForm = ({
         </select>
         {categoryLocked && (
           <p className="mt-1 text-xs text-gray-500">
-            Announcements are fixed to the announcement category.
+            ประกาศถูกกำหนดให้เป็นหมวดหมู่ประกาศ
           </p>
         )}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Status</label>
+        <label className="block text-sm font-medium text-gray-700">สถานะ</label>
         <select
           name="status"
           value={newsItem.status || 'draft'}
           onChange={handleChange}
           className="mt-1 block w-full px-3 py-2 border rounded-md"
         >
-          <option value="draft">Draft</option>
-          <option value="published">Published</option>
+          <option value="draft">ฉบับร่าง</option>
+          <option value="published">เผยแพร่แล้ว</option>
         </select>
       </div>
 
       {/* อัปโหลดรูป + พรีวิว */}
       <div>
-        <label className="block text-sm font-medium text-gray-700">Featured Image</label>
+        <label className="block text-sm font-medium text-gray-700">รูปภาพเด่น</label>
 
         <input
           type="file"
@@ -149,7 +149,7 @@ const NewsForm = ({
           <div className="mt-3">
             <img
               src={previewUrl}
-              alt="Preview"
+              alt="ตัวอย่าง"
               className="max-h-48 rounded border"
             />
             <button
@@ -157,11 +157,11 @@ const NewsForm = ({
               onClick={handleRemoveImage}
               className="mt-2 px-3 py-1 text-sm bg-red-600 text-white rounded"
             >
-              Remove image
+              ลบรูปภาพ
             </button>
           </div>
         ) : (
-          <p className="mt-2 text-xs text-gray-500">No image selected</p>
+          <p className="mt-2 text-xs text-gray-500">ไม่ได้เลือกรูปภาพ</p>
         )}
       </div>
 
@@ -171,7 +171,7 @@ const NewsForm = ({
           disabled={loading}
           className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300 transition-colors"
         >
-          {loading ? 'Saving...' : 'Save Article'}
+          {loading ? 'กำลังบันทึก...' : 'บันทึกบทความ'}
         </button>
       </div>
     </form>

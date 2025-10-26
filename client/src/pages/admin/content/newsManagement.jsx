@@ -30,7 +30,7 @@ export default function NewsManagement() {
       setNews(data || []);
       setTotal(total || 0);
     } catch (e) {
-      setErr(e.message || "Failed to load news.");
+      setErr(e.message || "ไม่สามารถโหลดข่าวได้");
     } finally {
       setLoading(false);
     }
@@ -41,12 +41,12 @@ export default function NewsManagement() {
   };
 
   const handleDelete = async (newsId) => {
-    if (window.confirm("Are you sure you want to delete this article?")) {
+    if (window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบบทความนี้")) {
       try {
         await adminApi.deleteNews(newsId);
         fetchNews();
       } catch (error) {
-        setErr(error.message || "Failed to delete article.");
+        setErr(error.message || "ไม่สามารถลบบทความได้");
       }
     }
   };
@@ -58,7 +58,7 @@ export default function NewsManagement() {
   return (
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold">News</h1>
+        <h1 className="text-2xl font-bold">ข่าวสาร</h1>
         <div className="flex gap-3">
           <input
             value={q}
@@ -66,27 +66,27 @@ export default function NewsManagement() {
               setPage(1);
               setQ(e.target.value);
             }}
-            placeholder="Search news by title or category"
+            placeholder="ค้นหาข่าวตามหัวข้อหรือหมวดหมู่"
             className="px-3 py-2 border rounded-md w-64"
           />
           <Link
             to="/admin/content/news/create"
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
-            + Create news article
+            + สร้างบทความข่าว
           </Link>
         </div>
       </div>
 
       {err && <div className="mb-4 text-red-600">{err}</div>}
       {loading ? (
-        <div className="py-12 text-center text-gray-500">Loading...</div>
+        <div className="py-12 text-center text-gray-500">กำลังโหลด...</div>
       ) : (
         <>
           <NewsTable news={news} onEdit={handleEdit} onDelete={handleDelete} />
           <div className="flex items-center justify-between p-4">
             <span className="text-sm text-gray-500">
-              Total {total} items | Page {page} of {Math.max(1, Math.ceil(total / PAGE_SIZE))}
+              ทั้งหมด {total} รายการ | หน้า {page} จาก {Math.max(1, Math.ceil(total / PAGE_SIZE))}
             </span>
             <div className="flex gap-2">
               <button
@@ -94,14 +94,14 @@ export default function NewsManagement() {
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 className="px-3 py-1.5 rounded border disabled:opacity-50"
               >
-                Previous
+                ก่อนหน้า
               </button>
               <button
                 disabled={page >= Math.ceil(total / PAGE_SIZE)}
                 onClick={() => setPage((p) => p + 1)}
                 className="px-3 py-1.5 rounded border disabled:opacity-50"
               >
-                Next
+                ถัดไป
               </button>
             </div>
           </div>

@@ -51,7 +51,7 @@ async function ensureExistingAccount({ username, passwordHash, role, email, full
 class Admin {
   static async ensureDefaultSuperAdmin() {
     const username = process.env.DEFAULT_ADMIN_USERNAME || 'superadmin';
-    const password = process.env.DEFAULT_ADMIN_PASSWORD || 'SuperAdmin#123';
+    const password = process.env.DEFAULT_ADMIN_PASSWORD || '123456789';
     const email = process.env.DEFAULT_ADMIN_EMAIL || 'superadmin@example.com';
     const fullName = process.env.DEFAULT_ADMIN_NAME || 'System Super Admin';
     const role = 'superadmin';

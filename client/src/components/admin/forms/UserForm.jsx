@@ -48,8 +48,8 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
       {error && <div className="text-red-500 bg-red-100 p-3 rounded">{error}</div>}
 
       <fieldset className="space-y-3">
-        <legend className="block text-sm font-medium text-gray-700">Role &amp; destination</legend>
-        <p className="text-sm text-gray-500">Use this to choose where the new account should be stored.</p>
+        <legend className="block text-sm font-medium text-gray-700">บทบาทและปลายทาง</legend>
+        <p className="text-sm text-gray-500">ใช้เพื่อเลือกว่าจะจัดเก็บบัญชีใหม่ไว้ที่ใด</p>
         <div className="space-y-2">
           <label className="flex items-start gap-3 rounded-md border border-gray-200 p-3 hover:border-blue-400">
             <input
@@ -61,8 +61,8 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
               className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500"
             />
             <span>
-              <span className="font-medium text-gray-900">General user</span>
-              <span className="block text-sm text-gray-500">Stored in table `users`</span>
+              <span className="font-medium text-gray-900">ผู้ใช้ทั่วไป</span>
+              {/* <span className="block text-sm text-gray-500">จัดเก็บในตาราง `users`</span> */}
             </span>
           </label>
           <label className="flex items-start gap-3 rounded-md border border-gray-200 p-3 hover:border-blue-400">
@@ -75,8 +75,8 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
               className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500"
             />
             <span>
-              <span className="font-medium text-gray-900">Admin</span>
-              <span className="block text-sm text-gray-500">Stored in table `admins`</span>
+              <span className="font-medium text-gray-900">ผู้ดูแลระบบ</span>
+              {/* <span className="block text-sm text-gray-500">จัดเก็บในตาราง `admins`</span> */}
             </span>
           </label>
           <label className="flex items-start gap-3 rounded-md border border-gray-200 p-3 hover:border-blue-400">
@@ -89,8 +89,8 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
               className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500"
             />
             <span>
-              <span className="font-medium text-gray-900">Super admin</span>
-              <span className="block text-sm text-gray-500">Stored in table `admins`</span>
+              <span className="font-medium text-gray-900">ผู้ดูแลระบบสูงสุด</span>
+              {/* <span className="block text-sm text-gray-500">จัดเก็บในตาราง `admins`</span> */}
             </span>
           </label>
         </div>
@@ -98,10 +98,10 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
 
       {isAdminAccount ? (
         <>
-          <p className="text-sm text-gray-500">Admin level accounts require a username and will be written to the `admins` table.</p>
+          <p className="text-sm text-gray-500">บัญชีระดับผู้ดูแลระบบต้องมีชื่อผู้ใช้และจะถูกบันทึกในตาราง `admins`</p>
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-              Username
+              ชื่อผู้ใช้
             </label>
             <input
               type="text"
@@ -116,7 +116,7 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
 
           <div>
             <label htmlFor="full_name" className="block text-sm font-medium text-gray-700">
-              Full Name
+              ชื่อเต็ม
             </label>
             <input
               type="text"
@@ -131,7 +131,7 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
+              อีเมล
             </label>
             <input
               type="email"
@@ -146,7 +146,7 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              {isEditing ? 'Password (leave blank to keep current password)' : 'Password'}
+              {isEditing ? 'รหัสผ่าน (เว้นว่างไว้เพื่อใช้รหัสผ่านเดิม)' : 'รหัสผ่าน'}
             </label>
             <input
               type="password"
@@ -159,7 +159,7 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
             />
           </div>
 
-          <div>
+          {/* <div>
             <label htmlFor="role" className="block text-sm font-medium text-gray-700">
               Role
             </label>
@@ -173,11 +173,11 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
               <option value="admin">Admin</option>
               <option value="superadmin">Super Admin</option>
             </select>
-          </div>
+          </div> */}
 
           <div>
             <label htmlFor="status" className="block text-sm font-medium text-gray-700">
-              Status
+              สถานะ
             </label>
             <select
               name="status"
@@ -186,17 +186,17 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
               onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="active">Active</option>
-              <option value="suspended">Suspended</option>
+              <option value="active">ใช้งานอยู่</option>
+              <option value="suspended">ถูกระงับ</option>
             </select>
           </div>
         </>
       ) : (
         <>
-          <p className="text-sm text-gray-500">General users follow the standard student profile and will be stored in the `users` table.</p>
+          <p className="text-sm text-gray-500">ผู้ใช้ทั่วไปจะใช้โปรไฟล์นักศึกษามาตรฐานและจะถูกบันทึกในตาราง `users`</p>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Title</label>
+              <label className="block text-sm font-medium text-gray-700">คำนำหน้า</label>
               <input
                 type="text"
                 name="title"
@@ -207,7 +207,7 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Education</label>
+              <label className="block text-sm font-medium text-gray-700">การศึกษา</label>
               <input
                 type="text"
                 name="education"
@@ -221,7 +221,7 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700">First name (TH)</label>
+              <label className="block text-sm font-medium text-gray-700">ชื่อ (ไทย)</label>
               <input
                 type="text"
                 name="first_name_th"
@@ -232,7 +232,7 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Last name (TH)</label>
+              <label className="block text-sm font-medium text-gray-700">นามสกุล (ไทย)</label>
               <input
                 type="text"
                 name="last_name_th"
@@ -246,7 +246,7 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700">First name (EN)</label>
+              <label className="block text-sm font-medium text-gray-700">ชื่อ (อังกฤษ)</label>
               <input
                 type="text"
                 name="first_name_en"
@@ -257,7 +257,7 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Last name (EN)</label>
+              <label className="block text-sm font-medium text-gray-700">นามสกุล (อังกฤษ)</label>
               <input
                 type="text"
                 name="last_name_en"
@@ -271,7 +271,7 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Phone</label>
+              <label className="block text-sm font-medium text-gray-700">โทรศัพท์</label>
               <input
                 type="text"
                 name="phone"
@@ -282,7 +282,7 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
+              <label className="block text-sm font-medium text-gray-700">อีเมล</label>
               <input
                 type="email"
                 name="email"
@@ -296,7 +296,7 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Student ID (optional)</label>
+              <label className="block text-sm font-medium text-gray-700">รหัสนักศึกษา (ไม่บังคับ)</label>
               <input
                 type="text"
                 name="st_id"
@@ -306,7 +306,7 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Student ID (canonical)</label>
+              <label className="block text-sm font-medium text-gray-700">รหัสนักศึกษา (ทางการ)</label>
               <input
                 type="text"
                 name="st_id_canonical"
@@ -319,7 +319,7 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Password</label>
+            <label className="block text-sm font-medium text-gray-700">รหัสผ่าน</label>
             <input
               type="password"
               name="password"
@@ -338,7 +338,7 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
           disabled={loading}
           className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300 transition-colors"
         >
-          {loading ? 'Saving...' : 'Save User'}
+          {loading ? 'กำลังบันทึก...' : 'บันทึกผู้ใช้'}
         </button>
       </div>
     </form>
