@@ -98,7 +98,7 @@ const UserForm = ({ user, setUser, onSubmit, loading, error, isEditing }) => {
 
       {isAdminAccount ? (
         <>
-          <p className="text-sm text-gray-500">บัญชีระดับผู้ดูแลระบบต้องมีชื่อผู้ใช้และจะถูกบันทึกในตาราง `admins`</p>
+          {/* <p className="text-sm text-gray-500">บัญชีระดับผู้ดูแลระบบต้องมีชื่อผู้ใช้และจะถูกบันทึกในตาราง `admins`</p> */}
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-gray-700">
               ชื่อผู้ใช้
