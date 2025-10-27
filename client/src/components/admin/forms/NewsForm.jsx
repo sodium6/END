@@ -136,7 +136,7 @@ const NewsForm = ({
 
       {/* อัปโหลดรูป + พรีวิว */}
       <div>
-        <label className="block text-sm font-medium text-gray-700">รูปภาพเด่น</label>
+        <label className="block text-sm font-medium text-gray-700">เพิ่มรูปภาพ</label>
 
         <input
           type="file"

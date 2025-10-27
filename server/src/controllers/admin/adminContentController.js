@@ -145,36 +145,111 @@ exports.updateNews = (req, res) => {
 };
 
 /* ---------- GET LIST ---------- */
+
+// controllers/news.controller.js - getAllNews (MySQL / mysql2)
 exports.getAllNews = async (req, res) => {
   try {
     const page     = Math.max(1, parseInt(req.query.page, 10) || 1);
     const pageSize = Math.min(100, Math.max(1, parseInt(req.query.pageSize, 10) || 10));
     const offset   = (page - 1) * pageSize;
 
-    const q        = (req.query.q || '').trim();
-    const category = (req.query.category || '').trim().toLowerCase();
-    const exclude  = (req.query.excludeCategory || '').trim().toLowerCase();
+    const qRaw         = (req.query.q || '').trim();
+    const qLower       = qRaw.toLowerCase();
+    const category     = (req.query.category || '').trim().toLowerCase();
+    const exclude      = (req.query.excludeCategory || '').trim().toLowerCase();
+    const statusFilter = (req.query.status || '').trim().toLowerCase();
+    const dateFromRaw  = (req.query.dateFrom || '').trim(); // 'YYYY-MM-DD' หรือ 'DD/MM/YYYY(พ.ศ./ค.ศ.)'
+    const dateToRaw    = (req.query.dateTo || '').trim();
 
-    const where = [];
+    const where  = [];
     const params = [];
 
-    if (q) {
-      where.push('title LIKE ?');
-      params.push(`%${q}%`);
+    // helper: แปลง DD/MM/YYYY (พ.ศ./ค.ศ.) -> YYYY-MM-DD
+    const toISO = (s) => {
+      if (!s) return null;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s; // ISO แล้ว
+      const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (!m) return null;
+      let [_, d, mo, y] = m;
+      d = d.padStart(2,'0'); mo = mo.padStart(2,'0');
+      let year = Number(y);
+      if (year > 2400) year -= 543; // พ.ศ. -> ค.ศ.
+      return `${year}-${mo}-${d}`;
+    };
+
+    // map คำค้นไทย/อังกฤษ -> status ที่เก็บใน DB
+    const mapStatusKeyword = (kw) => {
+      if (!kw) return null;
+      if (kw.includes('เผยแพร่')) return 'published';
+      if (kw.includes('ร่าง')) return 'draft';
+      if (kw.includes('published')) return 'published';
+      if (kw.includes('draft')) return 'draft';
+      return null;
+    };
+
+    // ค้นหารวม: title / status / วันที่ (รองรับ DD/MM/YYYY และ YYYY-MM-DD)
+    if (qRaw) {
+      params.push(`%${qRaw}%`);    // title LIKE
+      params.push(`%${qLower}%`);  // LOWER(status) LIKE
+      params.push(`%${qRaw}%`);    // DATE_FORMAT(created_at, '%d/%m/%Y') LIKE
+      params.push(`%${qRaw}%`);    // DATE_FORMAT(created_at, '%Y-%m-%d') LIKE
+
+      const orParts = [
+        `title LIKE ?`,
+        `LOWER(status) LIKE ?`,
+        `DATE_FORMAT(created_at, '%d/%m/%Y') LIKE ?`,
+        `DATE_FORMAT(created_at, '%Y-%m-%d') LIKE ?`,
+      ];
+
+      // ถ้าคีย์เวิร์ดเป็นสถานะที่รู้จัก ให้เทียบเท่ากับด้วย (แม่นกว่า LIKE)
+      const mappedStatus = mapStatusKeyword(qLower);
+      if (mappedStatus) {
+        orParts.push(`LOWER(status) = ?`);
+        params.push(mappedStatus);
+      }
+
+      // ถ้าคีย์เวิร์ดเป็นวันที่จริง ให้เทียบเท่ากับวันด้วย (แม่นกว่า LIKE)
+      const qISO = toISO(qRaw);
+      if (qISO) {
+        orParts.push(`DATE(created_at) = ?`);
+        params.push(qISO);
+      }
+
+      where.push(`(${orParts.join(' OR ')})`);
     }
+
+    // ฟิลเตอร์สถานะตรง ๆ (เช่น ?status=published)
+    if (statusFilter) {
+      where.push(`LOWER(status) = ?`);
+      params.push(statusFilter);
+    }
+
+    // ฟิลเตอร์ช่วงวันที่สร้าง
+    const dateFromISO = toISO(dateFromRaw);
+    const dateToISO   = toISO(dateToRaw);
+    if (dateFromISO) { where.push(`DATE(created_at) >= ?`); params.push(dateFromISO); }
+    if (dateToISO)   { where.push(`DATE(created_at) <= ?`); params.push(dateToISO); }
+
+    // ฟิลเตอร์หมวดหมู่/ตัดหมวดหมู่
     if (category) {
-      where.push('LOWER(category) = ?');
+      where.push(`LOWER(category) = ?`);
       params.push(category);
     }
     if (exclude) {
-      where.push('(category IS NULL OR LOWER(category) <> ?)');
+      where.push(`(category IS NULL OR LOWER(category) <> ?)`); 
       params.push(exclude);
     }
 
     const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
-    // อย่าใช้ placeholder กับ LIMIT/OFFSET -> ใช้ค่าที่ sanitize แล้วฝังลง SQL
-    const dataSql  = `SELECT * FROM news ${whereSql} ORDER BY created_at DESC LIMIT ${pageSize} OFFSET ${offset}`;
+    // NOTE: LIMIT/OFFSET ต้องฝังค่า (ใช้ค่าที่ sanitize แล้ว)
+    const dataSql  = `
+      SELECT *
+      FROM news
+      ${whereSql}
+      ORDER BY created_at DESC
+      LIMIT ${pageSize} OFFSET ${offset}
+    `;
     const countSql = `SELECT COUNT(*) AS total FROM news ${whereSql}`;
 
     const [rows]        = await pool.execute(dataSql, params);
@@ -186,6 +261,8 @@ exports.getAllNews = async (req, res) => {
     res.status(500).json({ message: 'Fetch failed' });
   }
 };
+
+
 
 /* ---------- GET ONE ---------- */
 exports.getNewsById = async (req, res) => {

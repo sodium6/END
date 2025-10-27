@@ -14,27 +14,30 @@ export default function NewsManagement() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
+  const [status, setStatus] = useState('');           // '' | 'draft' | 'published'
+  const [dateFrom, setDateFrom] = useState('');       // 'YYYY-MM-DD'
+  const [dateTo, setDateTo] = useState('');
+
 
   const where = useMemo(() => (q?.trim() ? q.trim() : ""), [q]);
 
   const fetchNews = useCallback(async () => {
-    try {
-      setLoading(true);
-      setErr("");
-      const { data, total } = await adminApi.getNews({
-        page,
-        pageSize: PAGE_SIZE,
-        q: where,
-        excludeCategory: ANNOUNCEMENT_CATEGORY,
-      });
-      setNews(data || []);
-      setTotal(total || 0);
-    } catch (e) {
-      setErr(e.message || "ไม่สามารถโหลดข่าวได้");
-    } finally {
-      setLoading(false);
-    }
-  }, [page, where]);
+  try {
+    setLoading(true); setErr('');
+    const { data, total } = await adminApi.getNews({
+      page,
+      pageSize: PAGE_SIZE,
+      q: where,                     // คีย์เวิร์ด: หัวข้อ/หมวดหมู่/สถานะ/วันที่ (แบบ to_char)
+      status: status || undefined,  // ฟิลเตอร์สถานะเฉพาะเจาะจง
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
+      excludeCategory: ANNOUNCEMENT_CATEGORY,
+    });
+    setNews(data || []); setTotal(total || 0);
+  } catch (e) { setErr(e.message || 'ไม่สามารถโหลดข่าวได้'); }
+  finally { setLoading(false); }
+}, [page, where, status, dateFrom, dateTo]);
+
 
   const handleEdit = (newsId) => {
     navigate(`/admin/content/news/edit/${newsId}`);
@@ -61,13 +64,15 @@ export default function NewsManagement() {
         <h1 className="text-2xl font-bold">ข่าวสาร</h1>
         <div className="flex gap-3">
           <input
+            type="search"
             value={q}
             onChange={(e) => {
               setPage(1);
               setQ(e.target.value);
             }}
-            placeholder="ค้นหาข่าวตามหัวข้อหรือหมวดหมู่"
-            className="px-3 py-2 border rounded-md w-64"
+            placeholder="ค้นหา: หัวข้อ / สถานะ / วันที่ "
+            autoComplete="off"
+            className="px-3 py-2 border rounded-md w-80"
           />
           <Link
             to="/admin/content/news/create"
