@@ -27,13 +27,13 @@ export default function AdminHeader() {
             </p>
           )}
         </div>
-        <button
+        {/* <button
           onClick={handleLogout}
           className="flex items-center p-2 rounded-full text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-colors"
           title="ออกจากระบบ"
         >
           <FiLogOut className="w-5 h-5" />
-        </button>
+        </button> */}
       </div>
     </header>
   );
