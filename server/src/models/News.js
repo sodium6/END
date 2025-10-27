@@ -3,7 +3,7 @@ const pool = require('../db/database');
 class News {
   static async dropIfExists() {
     await pool.execute('DROP TABLE IF EXISTS news');
-    console.log('[News] Dropped table if existed: news');
+    // console.log('[News] Dropped table if existed: news');
   }
 
   static async createTable() {
@@ -17,12 +17,12 @@ class News {
       const [newsTables] = await pool.execute("SHOW TABLES LIKE 'news'");
       if (newsTables.length > 0) {
         if (!shouldReset) {
-          console.log('[News] Table already exists; skipping recreation');
+          // console.log('[News] Table already exists; skipping recreation');
           return;
         }
-        console.log('[News] Dropping existing news table because RESET_NEWS_TABLE=true');
+        // console.log('[News] Dropping existing news table because RESET_NEWS_TABLE=true');
         await pool.execute('DROP TABLE news');
-        console.log('[News] Existing news table dropped');
+        // console.log('[News] Existing news table dropped');
       }
 
       const createTableSQL = `
@@ -41,7 +41,7 @@ class News {
       `;
 
       await pool.execute(createTableSQL);
-      console.log('[News] News table created successfully');
+      // console.log('[News] News table created successfully');
     } catch (error) {
       console.error('[News] News table creation failed:', error.message);
       throw error;

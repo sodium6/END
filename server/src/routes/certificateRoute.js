@@ -14,7 +14,7 @@ const uploadCertificate = require('../middlewares/uploadCertificate');
 const userAuth = require('../middlewares/userAuth');
 // log ทุกคำขอที่เข้ามาถึง router นี้
 router.use((req, _res, next) => {
-  console.log(`[certRoute] ${req.method} ${req.originalUrl}`);
+  // console.log(`[certRoute] ${req.method} ${req.originalUrl}`);
   next();
 });
 

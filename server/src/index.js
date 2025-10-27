@@ -13,7 +13,7 @@ require('dotenv').config();
 
 const app = express();
 
-app.use(morgan('dev'));
+// app.use(morgan('dev'));
 app.use(express.json());
 app.use(cors({
   origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174'],
@@ -36,7 +36,7 @@ app.use(cors({
 app.use("/uploads", express.static(path.join(__dirname, "uploads"))); 
 // --- API ---
 routes.forEach(({ path, route }) => {
-  console.log('[MOUNT]', `/api/${path}`);
+  // console.log('[MOUNT]', `/api/${path}`);
   app.use(`/api/${path}`, route);
 });
 app.use((req, res, next) => {
@@ -84,12 +84,12 @@ const initializeDatabase = async () => {
     // console.log('[DB] Database tables initialized successfully');
   } catch (error) {
     // console.error('[DB] Database initialization failed:', error);
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      errno: error.errno,
-      sqlState: error.sqlState,
-    });
+    // console.error('Error details:', {
+    //   message: error.message,
+    //   code: error.code,
+    //   errno: error.errno,
+    //   sqlState: error.sqlState,
+    // });
     process.exit(1);
   }
 };
