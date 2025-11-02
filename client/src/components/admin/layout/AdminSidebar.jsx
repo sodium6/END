@@ -81,9 +81,9 @@ export default function AdminSidebar() {
         {/* <SidebarLink to="/admin/analytics" icon={<FiBarChart2 className="mr-3" />}>
           วิเคราะห์ข้อมูล
         </SidebarLink> */}
-        {/* <SidebarLink to="/admin/settings" icon={<FiSettings className="mr-3" />}>
-          การตั้งค่า
-        </SidebarLink> */}
+        <SidebarLink to="/admin/settings" icon={<FiSettings className="mr-3" />}>
+          การส่ง ข่าวสาร
+        </SidebarLink>
       </nav>
       <div className="mt-auto pt-4 border-t border-gray-700 space-y-3">
         {/* <div className="px-3 text-sm">
