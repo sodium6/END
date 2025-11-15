@@ -59,7 +59,7 @@ export default function AdminSidebar() {
       </div>
       <nav className="space-y-2 flex-1">
         <SidebarLink to="/admin/dashboard" icon={<FiGrid className="mr-3" />}>
-          Dashboard
+          หน้าแดชน์บอร์ด
         </SidebarLink>
 
         <CollapsibleLink icon={<FiUsers className="mr-3" />} title="จัดการผู้ใช้">
@@ -74,7 +74,7 @@ export default function AdminSidebar() {
 
         {admin?.role === 'superadmin' && (
           <SidebarLink to="/admin/communications/email" icon={<FiSend className="mr-3" />}>
-            Email Broadcast
+            จัดส่งข่าวสาร
           </SidebarLink>
         )}
 

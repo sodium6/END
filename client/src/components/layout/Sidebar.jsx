@@ -96,7 +96,7 @@ export default function Sidebar() {
               to="/dashboard"
               className="w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100"
             >
-              <span className="text-sm">Dashboard</span>
+              <span className="text-sm">หน้าแดชน์บอร์ด</span>
             </Link>
           </li>
           <li>
@@ -104,7 +104,7 @@ export default function Sidebar() {
               to="/my-portfolio"
               className="w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100"
             >
-              <span className="text-sm">My Portfolio</span>
+              <span className="text-sm">ข้อมูลในพอร์ตฟอลิโอ</span>
             </Link>
           </li>
           <li>
@@ -120,7 +120,7 @@ export default function Sidebar() {
               to="/template/view"
               className="w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100"
             >
-              <span className="text-sm">template</span>
+              <span className="text-sm">เทมเพลต พอร์ตฟอลิโอ</span>
             </Link>
           </li>
    <li>
@@ -128,7 +128,7 @@ export default function Sidebar() {
               to="/certificate"
               className="w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100"
             >
-              <span className="text-sm">certificate</span>
+              <span className="text-sm">ใบเกียรติบัตร</span>
             </Link>
           </li> 
 

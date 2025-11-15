@@ -21,7 +21,9 @@ import {
 import { jwtDecode } from "jwt-decode";
 import { getPortfolioData } from "../../../services/getPortfolioDataApi";
 import { useLocation, useSearchParams, useNavigate } from "react-router-dom";
-
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import axios  from "axios";
 // Template Components
 import Template1 from "@/components/portfolio/backgrounds/Template1";
 import Template2 from "@/components/portfolio/backgrounds/Template2";
@@ -34,47 +36,16 @@ export default function PortfolioView({ userId: propUserId }) {
   const goBack = () => navigate("/my-portfolio");
   const [printDebug, setPrintDebug] = useState(false);
 
-  useEffect(() => {
-    document.body.classList.toggle("debug-print", printDebug);
-    return () => document.body.classList.remove("debug-print");
-  }, [printDebug]);
-  // Helper functions
-  const toAbsUrl = (p) => {
-    if (!p) return "";
-    const s = String(p);
-    const abs = s.startsWith("http")
-      ? s
-      : `${API_BASE}${s.startsWith("/") ? s : `/${s}`}`;
-    const alreadyEncoded = /%[0-9A-Fa-f]{2}/.test(abs);
-    if (!alreadyEncoded && /[^\x20-\x7E]/.test(abs)) return encodeURI(abs);
-    return abs;
-  };
-
-  const formatDate = (d) => {
-    if (!d) return "-";
-    try {
-      const dt = new Date(d);
-      if (Number.isNaN(dt.getTime())) return d;
-      return dt.toLocaleDateString("th-TH", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-    } catch {
-      return d;
-    }
-  };
-
-  // Template id from previous page / query / storage
-  const location = useLocation();
+ const location = useLocation();
   const [params] = useSearchParams();
+
   const templateId =
     location.state?.templateId ||
     params.get("tpl") ||
     localStorage.getItem("portfolio.tpl") ||
     "template1";
 
-  // userId from token
+  // ดึง userId จาก token (เหมือนเดิม)
   const userIdFromToken = useMemo(() => {
     try {
       const token = localStorage.getItem("token");
@@ -85,7 +56,12 @@ export default function PortfolioView({ userId: propUserId }) {
       return null;
     }
   }, []);
-  const userId = propUserId ?? userIdFromToken;
+
+  // 👇 เพิ่มตรงนี้: ดึงจาก query ?userId=...
+  const userIdFromQuery = params.get("userId");
+
+  // ลำดับความสำคัญ: prop > token > query
+  const userId = propUserId ?? userIdFromToken ?? userIdFromQuery;
 
   // State management
   const [loading, setLoading] = useState(true);
@@ -98,6 +74,55 @@ export default function PortfolioView({ userId: propUserId }) {
     activities: true,
     sports: true,
   });
+
+  // ฟังก์ชัน downloadPDF ที่แก้ไขแล้ว
+ const downloadPDF = async () => {
+  try {
+    if (!userId) {
+      alert("ไม่พบผู้ใช้");
+      return;
+    }
+
+    // ส่งสถานะ template + toggle แต่ละ section ไปให้ backend
+    const qs = new URLSearchParams({
+      tpl: selectedTemplate,
+      personal: showSection.personal ? "1" : "0",
+      works: showSection.works ? "1" : "0",
+      activities: showSection.activities ? "1" : "0",
+      sports: showSection.sports ? "1" : "0",
+    });
+
+    const res = await axios.get(
+      `${API_BASE}/api/data/${userId}/pdf?${qs.toString()}`,
+      { responseType: "blob" }
+    );
+
+    // สร้าง blob แล้วสั่งโหลด
+    const blob = new Blob([res.data], { type: "application/pdf" });
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+
+    const today = new Date();
+    const dateStr = today.toISOString().slice(0, 10);
+    const firstName = data?.personalInfo?.first_name_th || "User";
+    const lastName = data?.personalInfo?.last_name_th || "";
+    a.download = `Portfolio_${firstName}_${lastName}_${dateStr}.pdf`;
+
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error("Download PDF failed:", err);
+    alert("ดาวน์โหลด PDF ไม่สำเร็จ");
+  }
+};
+
+
+
+
 
   // Load data from API
   useEffect(() => {
@@ -127,11 +152,40 @@ export default function PortfolioView({ userId: propUserId }) {
     };
   }, [userId]);
 
-  // CSS เดียวใช้ทั้งหน้า และ inject ใน popup
-  // PortfolioView.jsx
+  useEffect(() => {
+    document.body.classList.toggle("debug-print", printDebug);
+    return () => document.body.classList.remove("debug-print");
+  }, [printDebug]);
+
+  // Helper functions
+  const toAbsUrl = (p) => {
+    if (!p) return "";
+    const s = String(p);
+    const abs = s.startsWith("http")
+      ? s
+      : `${API_BASE}${s.startsWith("/") ? s : `/${s}`}`;
+    const alreadyEncoded = /%[0-9A-Fa-f]{2}/.test(abs);
+    if (!alreadyEncoded && /[^\x20-\x7E]/.test(abs)) return encodeURI(abs);
+    return abs;
+  };
+
+  const formatDate = (d) => {
+    if (!d) return "-";
+    try {
+      const dt = new Date(d);
+      if (Number.isNaN(dt.getTime())) return d;
+      return dt.toLocaleDateString("th-TH", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch {
+      return d;
+    }
+  };
+
   const PRINT_CSS = `
   @media print {
-    /* ---------- พื้นฐานการพิมพ์ ---------- */
     #portfolio-print-area .print-section{
       padding-top:14mm !important;
       padding-bottom:14mm !important;
@@ -140,8 +194,6 @@ export default function PortfolioView({ userId: propUserId }) {
       break-before: page !important;
       page-break-before: always !important;
     }
-  
-    /* หน้าปก */
     #portfolio-print-area .print-cover{
       height: 90vh !important;
       min-height: 90vh !important;
@@ -151,81 +203,51 @@ export default function PortfolioView({ userId: propUserId }) {
       page-break-after: always !important;
       padding-top: 10mm !important;
     }
-  
-    /* ส่วนแรกหลังปก ไม่ต้องบังคับขึ้นหน้าใหม่ซ้ำ */
     #portfolio-print-area .print-cover + .print-section{
       break-before: auto !important;
       page-break-before: auto !important;
       padding-top: 10mm !important;
     }
-  
-    /* คอลัมน์ตอนพิมพ์ */
     .print-cols-2{ display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:2rem !important; }
     .print-cols-3{ display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)) !important; gap:2rem !important; }
-  
-    /* สี/เส้นขอบให้ทึบ */
     .print-solid-800{ background:#1f2937 !important; }
     .print-card-border{ border-color:#374151 !important; }
-  
-    /* ลดเอฟเฟกต์ */
     *[class*="shadow"]{ box-shadow:none !important; }
     *{ animation:none !important; transition:none !important; }
-  
-    /* กันโดนตัดครึ่ง */
-    .print-avoid-break,
-    .no-break-inside,
-    figure, img{
+    .print-avoid-break, .no-break-inside, figure, img{
       break-inside:avoid; page-break-inside:avoid;
     }
     #portfolio-print-area .print\\:break-inside-avoid{
       break-inside:avoid !important; page-break-inside:avoid !important;
     }
-  
-    /* ตัวคั่นขึ้นหน้าใหม่ */
     #portfolio-print-area .page-break{
       break-before: page !important;
       page-break-before: always !important;
       height:0; margin:0; border:0; padding:0;
     }
-  
-    /* ไหลยาวเพื่อง่ายต่อการ break */
     #portfolio-print-area .print-flow{ display:block !important; }
     #portfolio-print-area .print-flow [class*="col-span"]{ display:block !important; width:100% !important; }
-  
-    /* สีตรงกับหน้าจอ */
     html,body{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
     .screen-only{ display:none !important; }
     .print-only{ display:block !important; }
-  
-    /* องค์ประกอบอื่น ๆ */
-    #portfolio-print-area figure,
-    #portfolio-print-area img,
-    #portfolio-print-area table{ break-inside:avoid; page-break-inside:avoid; }
+    #portfolio-print-area figure, #portfolio-print-area img, #portfolio-print-area table{ 
+      break-inside:avoid; page-break-inside:avoid; 
+    }
     #portfolio-print-area [class*="shadow"]{ box-shadow:none !important; }
-  
     #portfolio-print-area .personal-cards{
       display:grid !important; grid-template-columns:repeat(4,minmax(0,1fr)) !important; gap:1.5rem !important;
     }
-  
-    /* Preface grid */
     #portfolio-print-area .preface-grid{
       display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:2rem !important;
     }
     #portfolio-print-area .preface-grid > *{ break-inside:avoid; page-break-inside:avoid; }
-  
-    /* ปิดลิงก์ใน file-chip */
     .file-chip a{ display:none !important; }
-  
-    /* หน้าเอกสาร */
     @page{ size:A4; margin:-5mm !important; }
     #portfolio-print-area{ margin:0 !important; padding:0 !important; }
-  
-    /* ยกเลิกบังคับ break หลังบล็อคสุดท้าย + กัน ghost page */
-    #portfolio-print-area .print-cover:last-of-type,
-    #portfolio-print-area .print-section:last-of-type{
+    #portfolio-print-area .print-cover:last-of-type, #portfolio-print-area .print-section:last-of-type{
       break-after:auto !important; page-break-after:auto !important;
     }
-    #portfolio-print-area .page-break:last-child,
+    #portfolio-print-area .page-break:last-child, 
     #portfolio-print-area .print-section:last-of-type > .page-break:last-child{
       display:none !important;
     }
@@ -233,11 +255,9 @@ export default function PortfolioView({ userId: propUserId }) {
       margin-bottom:0 !important; padding-bottom:0 !important;
       border-bottom-width:0 !important; box-shadow:none !important; transform:none !important;
     }
-  
-    /* ---------- OVERRIDE: print-section2 ---------- */
     #portfolio-print-area .print-section.print-section2{
-      padding:22mm 12mm 12mm !important;   /* เพิ่มขอบบน */
-      break-before:auto !important;        /* ไม่บังคับขึ้นหน้าใหม่ซ้ำ */
+      padding:22mm 12mm 12mm !important;
+      break-before:auto !important;
       page-break-before:auto !important;
     }
     #portfolio-print-area .print-cover + .print-section.print-section2{
@@ -249,31 +269,26 @@ export default function PortfolioView({ userId: propUserId }) {
       position:static !important; top:auto !important;
     }
   }
-  
-  /* ใช้ได้ทั้งจอและตอนพิมพ์: ชิปชื่อไฟล์ไม่ล้น */
   #portfolio-print-area .file-chip{
     display:inline-flex; align-items:center; max-width:100%;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
   `;
-  
 
-
-  // Print functions
   const onPrint = () => window.print();
 
   const previewAsPDF = () => {
     const printable = document.querySelector("#portfolio-print-area");
-    if (!printable) return;
+    if (!printable) {
+      alert("ไม่พบพื้นที่สำหรับพิมพ์");
+      return;
+    }
 
-    const css = [...document.querySelectorAll('link[rel="stylesheet"], style')]
+    const css = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
       .map((n) => n.outerHTML)
       .join("\n");
 
-    const win = window.open("", "_blank", "noopener,noreferrer");
-    if (!win) return;
-
-    win.document.write(`
+    const html = `
       <html>
         <head>
           <meta charset="utf-8" />
@@ -283,19 +298,26 @@ export default function PortfolioView({ userId: propUserId }) {
         </head>
         <body>
           ${printable.outerHTML}
-          <script>
-            const imgs = Array.from(document.images || []);
-            Promise.all(
-              imgs.map(img => img.complete ? Promise.resolve() : new Promise(r => { img.onload = img.onerror = r; }))
-            ).then(() => { window.focus(); window.print(); });
-          <\/script>
         </body>
       </html>
-    `);
+    `;
+
+    const win = window.open("", "_blank");
+    if (!win) {
+      alert("เบราว์เซอร์บล็อค popup ให้อนุญาต popup จากเว็บนี้ก่อน");
+      return;
+    }
+
+    win.document.open();
+    win.document.write(html);
     win.document.close();
+
+    win.onload = () => {
+      win.focus();
+      win.print();
+    };
   };
 
-  // Template mapping
   const templates = {
     template1: Template1,
     template2: Template2,
@@ -304,7 +326,6 @@ export default function PortfolioView({ userId: propUserId }) {
 
   const CurrentTemplate = templates[selectedTemplate] || Template1;
 
-  // Loading / Error
   if (!userId) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-600">
@@ -343,7 +364,6 @@ export default function PortfolioView({ userId: propUserId }) {
     );
   }
 
-  // Prepare data for templates
   const {
     personalInfo: user = {},
     workExperiences: works = [],
@@ -360,7 +380,6 @@ export default function PortfolioView({ userId: propUserId }) {
 
   return (
     <div className="min-h-screen bg-slate-50/60 print:bg-white font-['Sarabun',sans-serif]">
-      {/* Top bar (hidden on print) */}
       <div className="print:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-slate-200 shadow-sm">
         <div className="w-full px-4 md:px-8 py-3">
           <button
@@ -375,7 +394,6 @@ export default function PortfolioView({ userId: propUserId }) {
         </div>
       </div>
 
-      {/* Right tools (hidden on print) */}
       <div className="fixed top-20 right-4 md:right-6 z-50 print:hidden">
         <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-200/70 p-4 w-[280px]">
           <div className="flex items-center gap-2 mb-3">
@@ -386,34 +404,36 @@ export default function PortfolioView({ userId: propUserId }) {
           <div className="grid grid-cols-1 gap-2 mb-4">
             <button
               onClick={() => setSelectedTemplate("template1")}
-              className={`p-3 rounded-lg text-sm font-medium transition-all ring-1 ${selectedTemplate === "template1"
+              className={`p-3 rounded-lg text-sm font-medium transition-all ring-1 ${
+                selectedTemplate === "template1"
                   ? "bg-blue-600 text-white ring-transparent shadow-md"
                   : "bg-slate-100 hover:bg-slate-200 text-slate-700 ring-slate-200"
-                }`}
+              }`}
             >
               Professional Blue
             </button>
             <button
               onClick={() => setSelectedTemplate("template2")}
-              className={`p-3 rounded-lg text-sm font-medium transition-all ring-1 ${selectedTemplate === "template2"
+              className={`p-3 rounded-lg text-sm font-medium transition-all ring-1 ${
+                selectedTemplate === "template2"
                   ? "bg-slate-800 text-white ring-transparent shadow-md"
                   : "bg-slate-100 hover:bg-slate-200 text-slate-700 ring-slate-200"
-                }`}
+              }`}
             >
               Dark Modern
             </button>
             <button
               onClick={() => setSelectedTemplate("template3")}
-              className={`p-3 rounded-lg text-sm font-medium transition-all ring-1 ${selectedTemplate === "template3"
+              className={`p-3 rounded-lg text-sm font-medium transition-all ring-1 ${
+                selectedTemplate === "template3"
                   ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white ring-transparent shadow-md"
                   : "bg-slate-100 hover:bg-slate-200 text-slate-700 ring-slate-200"
-                }`}
+              }`}
             >
               Creative Gradient
             </button>
           </div>
 
-          {/* Section Toggles */}
           <div className="border-t border-slate-200/70 pt-3 mb-4">
             <p className="text-xs font-semibold text-slate-600 mb-3">แสดง/ซ่อนส่วน</p>
             <div className="space-y-2.5">
@@ -446,57 +466,62 @@ export default function PortfolioView({ userId: propUserId }) {
                 }
               />
             </div>
-
           </div>
 
-          {/* Print Buttons */}
           <div className="space-y-2">
             <button
-              onClick={previewAsPDF}
+              onClick={downloadPDF}
               className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white
                          px-4 py-3 rounded-xl hover:bg-blue-700 active:scale-[.98] transition-all text-sm font-medium
                          shadow-lg hover:shadow-xl"
             >
-              <Eye className="w-4 h-4" />
-              ดูตัวอย่าง PDF
+              <Download className="w-4 h-4" />
+              ดาวน์โหลด PDF
             </button>
-            <button
-              onClick={onPrint}
+
+            {/* <button
+              onClick={previewAsPDF}
               className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white
                          px-4 py-3 rounded-xl hover:bg-emerald-700 active:scale-[.98] transition-all text-sm font-medium
                          shadow-lg hover:shadow-xl"
             >
+              <Eye className="w-4 h-4" />
+              ดูตัวอย่าง PDF
+            </button> */}
+
+            <button
+              onClick={onPrint}
+              className="w-full flex items-center justify-center gap-2 bg-slate-600 text-white
+                         px-4 py-3 rounded-xl hover:bg-slate-700 active:scale-[.98] transition-all text-sm font-medium
+                         shadow-lg hover:shadow-xl"
+            >
               <Printer className="w-4 h-4" />
-              พิมพ์ / บันทึก PDF
+              พิมพ์เอกสาร
             </button>
-            <label className="flex items-center gap-2 text-sm text-slate-600">
+
+            {/* <label className="flex items-center gap-2 text-sm text-slate-600">
               <input
                 type="checkbox"
                 checked={printDebug}
                 onChange={(e) => setPrintDebug(e.target.checked)}
               />
               แสดงเส้นคั่นหน้า (debug)
-            </label>
-
+            </label> */}
           </div>
 
           <div className="mt-3 pt-3 border-t border-slate-200/70">
-            <p className="text-xs text-slate-500 text-center">
+            {/* <p className="text-xs text-slate-500 text-center">
               💡 กด <kbd className="px-1.5 py-0.5 bg-slate-200 rounded text-slate-600 font-mono">Ctrl+P</kbd> เพื่อพิมพ์ได้เลย
-            </p>
+            </p> */}
           </div>
         </div>
       </div>
 
-      {/* เนื้อหา Portfolio */}
       <div className="mx-auto max-w-6xl px-4 md:px-8 py-6 md:py-8">
         <div
           id="portfolio-print-area"
-          className="
-    bg-white md:rounded-2xl md:shadow-lg
-    print:rounded-none print:shadow-none
-    print:max-w-none print:w-full print:mx-0 print:px-0
-  "
+          className="bg-white md:rounded-2xl md:shadow-lg print:rounded-none print:shadow-none
+                     print:max-w-none print:w-full print:mx-0 print:px-0"
         >
           <CurrentTemplate
             data={portfolioData}
@@ -507,7 +532,6 @@ export default function PortfolioView({ userId: propUserId }) {
         </div>
       </div>
 
-      {/* Print Styles */}
       <style>{PRINT_CSS}</style>
     </div>
   );

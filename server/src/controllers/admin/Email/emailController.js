@@ -8,7 +8,7 @@ dotenv.config();
 /* ======================= ENV & CONSTANTS ======================= */
 const EMAIL_DEBUG = /^true$/i.test(process.env.EMAIL_DEBUG || '');
 const RAW_MAIL_FROM = process.env.MAIL_FROM || ''; // รองรับ: "Name <email@dom>" หรือ "email@dom"
-
+const UPLOADS_DIR = process.env.UPLOADS_DIR || 'uploads';
 /* ======================= HELPERS ======================= */
 
 const fs = require('fs');
@@ -16,11 +16,39 @@ const path = require('path');
 const ROOT = process.cwd();
 
 function fileFromRelUrl(relUrl) {
-  if (!relUrl || /^https?:\/\//i.test(relUrl)) return null; // เป็น http(s) ไม่ต้องอ่านไฟล์
-  const abs = path.resolve(ROOT, relUrl.replace(/^\//, ''));
-  return fs.existsSync(abs) ? abs : null;
-}
+  if (!relUrl || /^https?:\/\//i.test(relUrl)) return null;
 
+  // normalize
+  const raw = decodeURI(String(relUrl).trim());
+  const cleaned = raw.replace(/^[\\/]+/, '').replace(/\\/g, '/'); // ตัด slash หน้าแรก + กันเคส Windows
+
+  // ตัด prefix 'uploads/' หรือ '/uploads/' ให้เหลือส่วนหลัง
+  const underUploads = cleaned.replace(/^uploads\//i, '');
+
+  // กำหนดตำแหน่ง uploads ต้นทาง (ไม่ใช่ public/)
+  const rootUploads = path.resolve(ROOT, UPLOADS_DIR);
+
+  // candidate ที่เป็นไปได้
+  const candidates = [
+    // กรณีให้มาเป็น 'uploads/news/xxx.png' หรือ '/uploads/news/xxx.png'
+    path.join(rootUploads, underUploads),
+    // กันเคสที่ให้มาทั้งพาธอยู่แล้ว (เช่น 'uploads/news/xxx.png')
+    path.resolve(ROOT, cleaned),
+    // กันเคสเขียนพลาดเป็น 'public/uploads/...'
+    path.resolve(ROOT, 'public', cleaned),
+  ];
+
+  for (const p of candidates) {
+    try {
+      if (fs.existsSync(p) && fs.statSync(p).isFile()) return p;
+    } catch {}
+  }
+
+  if (EMAIL_DEBUG) {
+    console.warn('[EMAIL] image file not found for', relUrl, 'tried:', candidates);
+  }
+  return null;
+}
 function buildSingleNewsEmail(req, news, message = '') {
   const attachments = [];
   let imgHtml = '';

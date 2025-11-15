@@ -73,6 +73,54 @@ router.post(
   broadcastBulk
 );
 
+
+router.get("/api/portfolio/:id/pdf", async (req, res) => {
+  const { id } = req.params;
+  const { tpl, personal, works, activities, sports, userId } = req.query;
+
+  try {
+    const base = getBaseUrl(req);
+
+    // สร้าง URL ของหน้า view จริง (ที่ใช้ Template + PRINT_CSS เดิม)
+    // ปรับ path ให้ตรงกับ route ในแอปคุณ
+    const viewUrl = `${base}/my-portfolio/view?tpl=${encodeURIComponent(
+      tpl || "template1"
+    )}&userId=${encodeURIComponent(userId || id)}
+      &personal=${personal || "1"}&works=${works || "1"}&activities=${activities || "1"}&sports=${sports || "1"}`;
+
+    const browser = await puppeteer.launch({
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      headless: "new",
+    });
+
+    const page = await browser.newPage();
+
+    // ถ้ามี auth/token ต้องใส่ header หรือคุกกี้ตรงนี้ (ถ้าจำเป็น)
+    // await page.setExtraHTTPHeaders({ Authorization: `Bearer ${token}` });
+
+    await page.goto(viewUrl, { waitUntil: "networkidle0", timeout: 120000 });
+    await page.emulateMediaType("print");
+
+    const pdf = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      margin: { top: "0mm", right: "0mm", bottom: "0mm", left: "0mm" },
+    });
+
+    await browser.close();
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="portfolio-${id}.pdf"`
+    );
+    return res.end(pdf);
+  } catch (e) {
+    console.error("PDF export failed:", e);
+    return res.status(500).json({ message: "pdf_export_failed" });
+  }
+});
+
 module.exports = {
   path: 'admin',
   route: router,
