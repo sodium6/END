@@ -1,20 +1,21 @@
 ﻿const express = require('express');
 const router = express.Router();
 
-const { login } = require('../controllers/admin/adminAuthController');
+const { login, deleteAdmin } = require('../controllers/admin/adminAuthController');
 const { listUsers, getUserById, createUser, updateUser, deleteUser } = require('../controllers/admin/adminUserController');
 const { listBroadcasts, sendBroadcast } = require('../controllers/admin/adminEmailController');
 const { getAllNews, getNewsById, createNews, updateNews, deleteNews } = require('../controllers/admin/adminContentController');
 const { listMembers, getMemberById: getMember, updateMemberStatus, resetMemberPassword, deleteMember } = require('../controllers/admin/memberController');
 const { getSummary: getAnalyticsSummary } = require('../controllers/admin/adminAnalyticsController');
 
-const {  subscribersSummary,broadcastNews,  broadcastBulk, } = require('../controllers/admin/Email/emailController'); 
+const { subscribersSummary, broadcastNews, broadcastBulk, } = require('../controllers/admin/Email/emailController');
 
 const adminAuth = require('../middlewares/adminAuth-handler');
 const requireRole = require('../middlewares/adminRole-handler');
 
 // Auth
 router.post('/auth/login', login);
+router.delete('/auth/me', adminAuth, deleteAdmin);
 
 // Protected examples
 router.get('/me', adminAuth, (req, res) => res.json({ admin: req.admin }));

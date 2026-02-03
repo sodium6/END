@@ -1,5 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import adminApiEmail from "../../../services/adminApiEmail";
+import { adminAuthApi } from "../../../services/adminAuthApi";
 
 export default function AdminSettings() {
   const [loading, setLoading] = useState(true);
@@ -24,8 +26,8 @@ export default function AdminSettings() {
         const raw = Array.isArray(pubRes?.data)
           ? pubRes.data
           : Array.isArray(pubRes)
-          ? pubRes
-          : [];
+            ? pubRes
+            : [];
         const data = raw.map((n) => ({ ...n, id: n.id ?? n.news_id }));
         setItems(data);
         setSubs(subSum || { total: 0 });
@@ -133,6 +135,27 @@ export default function AdminSettings() {
     }
   };
 
+  const navigate = useNavigate();
+  const handleDeleteAdmin = async () => {
+    if (!window.confirm("⚠️ คำเตือน: คุณแน่ใจหรือไม่ที่จะลบบัญชีผู้ดูแลระบบของตนเอง? การกระทำนี้ไม่สามารถย้อนกลับได้")) {
+      return;
+    }
+
+    // Double confirm
+    const confirmName = prompt("กรุณาพิมพ์ 'CONFIRM' เพื่อยืนยันการลบ:");
+    if (confirmName !== 'CONFIRM') return;
+
+    try {
+      await adminAuthApi.deleteSelf();
+      alert("ลบบัญชีเรียบร้อยแล้ว");
+      localStorage.removeItem("admin_token");
+      navigate("/admin/login"); // Adjust route if needed
+    } catch (e) {
+      console.error(e);
+      alert(e?.response?.data?.message || "ลบไม่สำเร็จ");
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 p-6">
@@ -193,7 +216,7 @@ export default function AdminSettings() {
             <span className="text-2xl">✉️</span>
             <h2 className="text-xl font-bold text-gray-800">ข้อความเพิ่มเติม</h2>
           </div>
-          
+
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -201,7 +224,7 @@ export default function AdminSettings() {
             className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-4 focus:ring-emerald-200 focus:border-emerald-400 transition-all"
             placeholder="เรียนผู้รับข่าวสาร ขอแจ้งข่าวสารสำคัญดังนี้..."
           />
-          
+
           <div className="mt-3 flex items-start gap-2 text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
             <span>💡</span>
             <p>ข้อความนี้จะแสดงที่ด้านบนของอีเมล หากเว้นว่างไว้ จะส่งเฉพาะเนื้อหาข่าวที่เลือก</p>
@@ -219,7 +242,7 @@ export default function AdminSettings() {
                   <p className="text-emerald-100 text-sm">ข่าวที่มีสถานะ Published เท่านั้น</p>
                 </div>
               </div>
-              
+
               <label className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg cursor-pointer transition-all">
                 <input
                   type="checkbox"
@@ -244,11 +267,10 @@ export default function AdminSettings() {
                 {items.map((n) => (
                   <div
                     key={n.id}
-                    className={`group border-2 rounded-xl p-4 transition-all cursor-pointer ${
-                      selected.has(n.id)
-                        ? "border-emerald-400 bg-emerald-50 shadow-md"
-                        : "border-gray-200 hover:border-emerald-300 hover:bg-gray-50"
-                    }`}
+                    className={`group border-2 rounded-xl p-4 transition-all cursor-pointer ${selected.has(n.id)
+                      ? "border-emerald-400 bg-emerald-50 shadow-md"
+                      : "border-gray-200 hover:border-emerald-300 hover:bg-gray-50"
+                      }`}
                     onClick={() => toggleOne(n.id, !selected.has(n.id))}
                   >
                     <label className="flex items-start gap-4 cursor-pointer">
@@ -342,16 +364,15 @@ export default function AdminSettings() {
               <span className="text-2xl">📊</span>
               <h3 className="text-xl font-bold text-gray-800">ผลการส่งอีเมล</h3>
             </div>
-            
+
             <div className="space-y-2">
               {results.map((r, i) => (
                 <div
                   key={`${r.id}-${i}`}
-                  className={`flex items-start gap-3 p-3 rounded-lg border-2 ${
-                    r.ok
-                      ? "bg-green-50 border-green-200"
-                      : "bg-red-50 border-red-200"
-                  }`}
+                  className={`flex items-start gap-3 p-3 rounded-lg border-2 ${r.ok
+                    ? "bg-green-50 border-green-200"
+                    : "bg-red-50 border-red-200"
+                    }`}
                 >
                   <span className="text-2xl">{r.ok ? "✅" : "❌"}</span>
                   <div className="flex-1">
@@ -369,7 +390,7 @@ export default function AdminSettings() {
             <div className="mt-4 pt-4 border-t border-gray-200">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">
-                  สำเร็จ: <span className="font-bold text-green-600">{results.filter(r => r.ok).length}</span> / 
+                  สำเร็จ: <span className="font-bold text-green-600">{results.filter(r => r.ok).length}</span> /
                   ล้มเหลว: <span className="font-bold text-red-600">{results.filter(r => !r.ok).length}</span>
                 </span>
                 <span className="text-gray-600">
@@ -379,6 +400,36 @@ export default function AdminSettings() {
             </div>
           </div>
         )}
+
+        {/* Danger Zone */}
+        <div className="bg-red-50 border-2 border-red-200 rounded-2xl shadow-md p-6 overflow-hidden">
+          <div className="flex items-start gap-4">
+            <div className="bg-red-100 p-3 rounded-full">
+              <span className="text-3xl">💣</span>
+            </div>
+            <div className="flex-1">
+              <h2 className="text-xl font-bold text-red-800">พื้นที่อันตราย (Danger Zone)</h2>
+              <p className="text-red-600 mt-1">
+                การกระทำในส่วนนี้อาจส่งผลกระทบถาวร กรุณาตรวจสอบให้แน่ใจก่อนดำเนินการ
+              </p>
+
+              <div className="mt-6 pt-6 border-t border-red-200 flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <h3 className="font-bold text-red-900">ลบบัญชีผู้ดูแลระบบ (ของฉัน)</h3>
+                  <p className="text-sm text-red-700/80">
+                    ลบบัญชี Admin ปัจจุบันออกจากระบบทันที
+                  </p>
+                </div>
+                <button
+                  onClick={handleDeleteAdmin}
+                  className="px-5 py-2.5 bg-white border-2 border-red-500 text-red-600 font-bold rounded-lg hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                >
+                  ลบบัญชีของฉัน
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

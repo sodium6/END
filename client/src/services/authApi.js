@@ -79,3 +79,45 @@ export const resetPassword = async (stIdCanonical, resetToken, newPassword) => {
   });
   return data;
 };
+
+// ลบบัญชีผู้ใช้ (Self)
+export const deleteAccount = async () => {
+  const token = localStorage.getItem("token");
+  const res = await api.delete("/auth/me", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};
+
+// ================= Detailed Profile =================
+export const updateProfileDetails = async (data) => {
+  const token = localStorage.getItem("token");
+  const res = await api.put("/auth/profile/details", data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};
+
+export const addEducation = async (data) => {
+  const token = localStorage.getItem("token");
+  const res = await api.post("/auth/profile/education", data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};
+
+export const deleteEducation = async (id) => {
+  const token = localStorage.getItem("token");
+  const res = await api.delete(`/auth/profile/education/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};
+
+export const updateSocials = async (data) => {
+  const token = localStorage.getItem("token");
+  const res = await api.put("/auth/profile/socials", data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};

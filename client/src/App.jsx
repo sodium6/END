@@ -17,6 +17,8 @@ import PublicRelations from './pages/user/public_relations/public_relations';
 import PortfolioView from './pages/user/template/portfolioView';
 import UniversalAnouncement from './pages/UniversalAnouncement/anouncement';
 import Certificate from './pages/user/certificate/certificate';
+import UserProfile from './pages/user/user/index'; // Import UserProfile
+
 // Admin Pages
 import AdminLogin from './pages/auth/adminLogin';
 import AdminDashboard from './pages/admin/dashboard/adminDashboard';
@@ -43,6 +45,7 @@ function App() {
           <Route path="/my-portfolio" element={<Portfolio />} />
           <Route path="/public-relations" element={<PublicRelations />} />
           <Route path="/certificate" element={<Certificate />} />
+          <Route path="/profile" element={<UserProfile />} />
           {/* <Route path="/template" element={<TemplatePort />} /> */}
 
         </Route>

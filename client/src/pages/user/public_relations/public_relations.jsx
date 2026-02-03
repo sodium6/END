@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getNews, getNewsById , subscribe } from "../../../services/newsApi";
+import { getNews, getNewsById, subscribe } from "../../../services/newsApi";
 
 const API_BASE =
   (typeof import.meta !== "undefined" &&
@@ -89,9 +89,9 @@ export default function PublicRelations() {
   const fmtDate = (d) =>
     d
       ? new Date(d).toLocaleString("th-TH", {
-          dateStyle: "medium",
-          timeStyle: "short",
-        })
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
       : "-";
 
 
@@ -126,14 +126,14 @@ export default function PublicRelations() {
         </h2>
 
         <div className="space-y-4">
-          {newsList.map((news) => {
+          {newsList.map((news, index) => {
             const imgSrc =
               news.featured_image_full ||
               absUrl(news.featured_image_url) ||
               "";
             return (
               <article
-                key={news.news_id}
+                key={news.news_id || index}
                 className="p-4 bg-white shadow rounded-lg border border-gray-200"
               >
                 <header className="flex items-start justify-between gap-3">
@@ -182,15 +182,15 @@ export default function PublicRelations() {
           </p>
           {(newsById.featured_image_full ||
             absUrl(newsById.featured_image_url)) && (
-            <img
-              src={
-                newsById.featured_image_full ||
-                absUrl(newsById.featured_image_url)
-              }
-              alt={newsById.title}
-              className="w-full rounded-lg mb-4"
-            />
-          )}
+              <img
+                src={
+                  newsById.featured_image_full ||
+                  absUrl(newsById.featured_image_url)
+                }
+                alt={newsById.title}
+                className="w-full rounded-lg mb-4"
+              />
+            )}
           <p className="whitespace-pre-line text-gray-700">
             {newsById.content}
           </p>
@@ -230,9 +230,8 @@ export default function PublicRelations() {
 
         {emailMsg && (
           <p
-            className={`mt-3 text-sm ${
-              submitted ? "text-green-600" : "text-red-600"
-            }`}
+            className={`mt-3 text-sm ${submitted ? "text-green-600" : "text-red-600"
+              }`}
           >
             {emailMsg}
           </p>

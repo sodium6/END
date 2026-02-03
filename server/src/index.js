@@ -8,18 +8,20 @@ const routes = require('./routes/index.js');
 const Admin = require('./models/Admin.js');
 const News = require('./models/News.js');
 const User = require('./models/User.js');
+const UserEducation = require('./models/UserEducation.js');
+const UserSocial = require('./models/UserSocial.js');
 const EmailBroadcast = require('./models/EmailBroadcast');
 require('dotenv').config();
 
 const app = express();
 
-// app.use(morgan('dev'));
+app.use(morgan('dev'));
 app.use(express.json());
 app.use(cors({
   origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174'],
   credentials: true,
-  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization','X-CSRF-Token'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
   charset: 'utf8mb4',
 }));
 // ✅ เสิร์ฟ /uploads จาก server/public/uploads (ไม่ใช่ src/public/uploads)
@@ -33,7 +35,7 @@ app.use(cors({
 //   etag: true,
 //   fallthrough: false, // ถ้าไฟล์ไม่มี ให้ตอบ 404 ที่นี่เลย
 // }));
-app.use("/uploads", express.static(path.join(__dirname, "uploads"))); 
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 // --- API ---
 routes.forEach(({ path, route }) => {
   // console.log('[MOUNT]', `/api/${path}`);
@@ -80,17 +82,14 @@ const initializeDatabase = async () => {
     }
 
     await News.createTable();
+    await UserEducation.createTable();
+    await UserSocial.createTable();
     await EmailBroadcast.createTable();
     // console.log('[DB] Database tables initialized successfully');
   } catch (error) {
-    console.error('[DB] Database initialization failed:', error);
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      errno: error.errno,
-      sqlState: error.sqlState,
-    });
-    process.exit(1);
+    console.error('[DB] Database initialization failed:', error.message);
+    console.log('[DB] Retrying connection in 5 seconds...');
+    setTimeout(initializeDatabase, 5000);
   }
 };
 

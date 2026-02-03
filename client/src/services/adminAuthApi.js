@@ -18,4 +18,5 @@ api.interceptors.request.use((config) => {
 export const adminAuthApi = {
   login: (username, password) => api.post('admin/auth/login', { username, password }),
   me: () => api.get('admin/me'),
+  deleteSelf: () => api.delete('admin/auth/me'),
 };

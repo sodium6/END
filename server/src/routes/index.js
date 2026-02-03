@@ -5,7 +5,8 @@ const adminRoute = require('./adminRoute.js');
 const newsRoute = require('./newsRoute.js');
 const certificateRoute = require('./certificateRoute.js');
 const dashboardRoute = require('./dashboardRoute.js');
-module.exports = [ authRoute, certificateRoute , portfolioRoute, getPortfolioDataRoute , adminRoute, newsRoute, dashboardRoute ];
+const uploadRoute = require('./uploadRoute.js');
+module.exports = [authRoute, certificateRoute, portfolioRoute, getPortfolioDataRoute, adminRoute, newsRoute, dashboardRoute, uploadRoute];
 
 
 

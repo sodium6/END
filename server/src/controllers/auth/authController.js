@@ -113,6 +113,31 @@ const verifyEmail = async (req, res) => {
       return res.status(400).json({ message: "กรุณาระบุอีเมลและรหัส OTP" });
     }
 
+    // Check if user is already verified (Idempotency)
+    const [existingUsers] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
+    if (existingUsers.length > 0) {
+      const existingUser = existingUsers[0];
+      if (existingUser.status === 'active') {
+        const token = jwt.sign(
+          { id: existingUser.id, st_id_canonical: existingUser.st_id_canonical },
+          process.env.JWT_SECRET,
+          { expiresIn: '1d' }
+        );
+        return res.json({
+          message: "อีเมลได้รับการยืนยันเรียบร้อยแล้ว",
+          token,
+          user: {
+            id: existingUser.id,
+            st_id_canonical: existingUser.st_id_canonical,
+            name: `${existingUser.first_name_th || ''} ${existingUser.last_name_th || ''}`.trim(),
+            email: existingUser.email,
+            status: existingUser.status,
+            user_type: existingUser.user_type
+          }
+        });
+      }
+    }
+
     // Find OTP record
     const [otpRows] = await pool.query(
       "SELECT * FROM email_verifications WHERE email = ? AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1",
@@ -137,6 +162,7 @@ const verifyEmail = async (req, res) => {
     await pool.query("DELETE FROM email_verifications WHERE email = ?", [email]);
 
     // Login user automatically
+    // Re-fetch user to get fresh data
     const [userRows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
     if (userRows.length === 0) return res.status(404).json({ message: "ไม่พบผู้ใช้" });
 
@@ -308,6 +334,182 @@ const logout = async (req, res) => {
 const profile = async (req, res) => {
   try {
     const authHeader = req.headers["authorization"];
+    if (!authHeader) return res.status(401).json({ message: "Unauthorized" });
+
+    const token = authHeader.split(" ")[1];
+    if (!token) return res.status(401).json({ message: "Unauthorized" });
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+
+    // Get User Base
+    const [rows] = await pool.query("SELECT * FROM users WHERE id = ?", [decoded.id]);
+    if (rows.length === 0) return res.status(404).json({ message: "ไม่พบบัญชีผู้ใช้" });
+
+    const user = rows[0];
+    delete user.password; // Hide sensitive data
+
+    // Get Education
+    const [eduRows] = await pool.query("SELECT * FROM user_education WHERE user_id = ? ORDER BY start_year DESC", [decoded.id]);
+
+    // Get Socials
+    const [socialRows] = await pool.query("SELECT * FROM user_socials WHERE user_id = ?", [decoded.id]);
+
+    const fullName = `${user.title || ''} ${user.first_name_th} ${user.last_name_th}`.trim();
+
+    res.json({
+      authenticated: true,
+      user: {
+        ...user, // Return all fields (dob, nickname, etc)
+        name: fullName,
+        education_history: eduRows,
+        socials: socialRows
+      },
+    });
+  } catch (err) {
+    console.error("Profile error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// ================= Update Profile Details =================
+const updateProfileDetails = async (req, res) => {
+  try {
+    const authHeader = req.headers["authorization"];
+    if (!authHeader) return res.status(401).json({ message: "Unauthorized" });
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const {
+      title, first_name_th, last_name_th, first_name_en, last_name_en,
+      nickname, dob, gender, nationality, phone, email,
+      line_id, address, province, about_me, profile_visibility, profile_pic
+    } = req.body;
+
+    let safeDob = null;
+    if (dob && dob !== '') {
+      const d = new Date(dob);
+      if (!isNaN(d.getTime())) {
+        safeDob = d.toISOString().split('T')[0];
+      }
+    }
+
+    await pool.query(
+      `UPDATE users SET 
+        title = ?, first_name_th = ?, last_name_th = ?, first_name_en = ?, last_name_en = ?,
+        nickname = ?, dob = ?, gender = ?, nationality = ?, phone = ?, email = ?,
+        line_id = ?, address = ?, province = ?, user_desc = ?, profile_visibility = ?, profile_pic = COALESCE(?, profile_pic)
+       WHERE id = ?`,
+      [
+        title, first_name_th, last_name_th, first_name_en, last_name_en,
+        nickname, safeDob, gender, nationality, phone, email,
+        line_id, address, province, about_me, JSON.stringify(profile_visibility || {}), profile_pic,
+        decoded.id
+      ]
+    );
+
+    res.json({ message: "อัปเดตข้อมูลส่วนตัวสำเร็จ" });
+  } catch (err) {
+    console.error("Update Profile error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// ================= Education Management =================
+const addEducation = async (req, res) => {
+  try {
+    const authHeader = req.headers["authorization"];
+    if (!authHeader) return res.status(401).json({ message: "Unauthorized" });
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const { level, institution, faculty, program, start_year, end_year, gpa } = req.body;
+
+    const safeStartYear = start_year && start_year !== '' ? start_year : null;
+    const safeEndYear = end_year && end_year !== '' ? end_year : null;
+    const safeGpa = gpa && gpa !== '' ? gpa : null;
+
+    await pool.query(
+      `INSERT INTO user_education (user_id, level, institution, faculty, program, start_year, end_year, gpa)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [decoded.id, level, institution, faculty, program, safeStartYear, safeEndYear, safeGpa]
+    );
+
+    res.json({ message: "เพิ่มประวัติการศึกษาสำเร็จ" });
+  } catch (err) {
+    console.error("Add Education error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const deleteEducation = async (req, res) => {
+  try {
+    const authHeader = req.headers["authorization"];
+    if (!authHeader) return res.status(401).json({ message: "Unauthorized" });
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const { id } = req.params;
+
+    await pool.query("DELETE FROM user_education WHERE id = ? AND user_id = ?", [id, decoded.id]);
+    res.json({ message: "ลบรายการสำเร็จ" });
+  } catch (err) {
+    console.error("Delete Education error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// ================= Socials Management =================
+const updateSocials = async (req, res) => {
+  try {
+    const authHeader = req.headers["authorization"];
+    if (!authHeader) return res.status(401).json({ message: "Unauthorized" });
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Expects array of socials: [{ platform: 'Facebook', url: '...' }, ...]
+    // Or just single add? Let's do bulk replace or smart update. 
+    // Simplest: Delete all and re-insert (easiest for syncing list)
+
+    const { socials } = req.body; // Array
+    if (!Array.isArray(socials)) return res.status(400).json({ message: "Invalid format" });
+
+    // Transaction?
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
+
+      // Delete existing
+      await conn.query("DELETE FROM user_socials WHERE user_id = ?", [decoded.id]);
+
+      // Insert new
+      if (socials.length > 0) {
+        const values = socials.map(s => [decoded.id, s.platform, s.url, s.is_visible ?? true]);
+        await conn.query("INSERT INTO user_socials (user_id, platform, url, is_visible) VALUES ?", [values]);
+      }
+
+      await conn.commit();
+      res.json({ message: "อัปเดตช่องทางติดต่อสำเร็จ" });
+    } catch (e) {
+      await conn.rollback();
+      throw e;
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error("Update Socials error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// ================= Delete Account =================
+const deleteAccount = async (req, res) => {
+  try {
+    const authHeader = req.headers["authorization"];
     if (!authHeader) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -324,33 +526,21 @@ const profile = async (req, res) => {
       return res.status(401).json({ message: "Invalid token" });
     }
 
-    const [rows] = await pool.query(
-      "SELECT id, title, first_name_th, last_name_th, st_id, st_id_canonical, email, status, user_type FROM users WHERE id = ?",
-      [decoded.id]
-    );
+    // Delete user
+    const [result] = await pool.query("DELETE FROM users WHERE id = ?", [decoded.id]);
 
-    if (rows.length === 0) {
+    if (result.affectedRows === 0) {
       return res.status(404).json({ message: "ไม่พบบัญชีผู้ใช้" });
     }
 
-    const user = rows[0];
-    const fullName = `${user.title || ''} ${user.first_name_th} ${user.last_name_th}`.trim();
-    res.json({
-      authenticated: true,
-      user: {
-        id: user.id,
-        name: fullName,
-        st_id: user.st_id,
-        st_id_canonical: user.st_id_canonical,
-        email: user.email,
-        status: user.status,
-        user_type: user.user_type
-      },
-    });
+    res.json({ message: "ลบบัญชีผู้ใช้งานเรียบร้อยแล้ว" });
   } catch (err) {
-    console.error("Profile error:", err);
+    console.error("Delete Account error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-module.exports = { register, verifyEmail, resendOtp, login, logout, profile };
+module.exports = {
+  register, verifyEmail, resendOtp, login, logout, profile, deleteAccount,
+  updateProfileDetails, addEducation, deleteEducation, updateSocials
+};

@@ -18,6 +18,9 @@ services:
     container_name: end_server
     ports:
       - "3000:3000"
+    volumes:
+      - ./server/uploads:/app/uploads
+      - ./server/src:/app/src # Mount source for easier dev edits without rebuild
     environment:
       - PORT=3000
       - DB_HOST=mysql

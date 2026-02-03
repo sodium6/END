@@ -60,6 +60,17 @@ class User {
     if (!have.has('updated_at')) {
       alters.push('ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
     }
+    // New Profile Columns
+    if (!have.has('nickname')) alters.push("ADD COLUMN nickname VARCHAR(100) NULL");
+    if (!have.has('dob')) alters.push("ADD COLUMN dob DATE NULL");
+    if (!have.has('gender')) alters.push("ADD COLUMN gender VARCHAR(20) NULL");
+    if (!have.has('nationality')) alters.push("ADD COLUMN nationality VARCHAR(50) NULL");
+    if (!have.has('line_id')) alters.push("ADD COLUMN line_id VARCHAR(100) NULL");
+    if (!have.has('address')) alters.push("ADD COLUMN address TEXT NULL");
+    if (!have.has('province')) alters.push("ADD COLUMN province VARCHAR(100) NULL");
+    if (!have.has('user_desc')) alters.push("ADD COLUMN user_desc TEXT NULL");
+    if (!have.has('profile_visibility')) alters.push("ADD COLUMN profile_visibility JSON NULL");
+    if (!have.has('profile_pic')) alters.push("ADD COLUMN profile_pic VARCHAR(255) NULL");
 
     if (alters.length > 0) {
       await pool.execute(`ALTER TABLE users ${alters.join(', ')}`);
