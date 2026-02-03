@@ -7,7 +7,8 @@ import RequireAdminAuth from './components/admin/layout/RequireAdminAuth';
 
 // User Pages
 import SignIn from './pages/auth/Signin';
-import SignUp from './pages/auth/SignUp';
+
+import RegisterWithOTP from './pages/auth/RegisterWithOTP';
 import ResetPassword from './pages/auth/resetpassword';
 import Dashboard from './pages/user/dashboard/dashboard';
 import Portfolio from './pages/user/portfolio/portfolio';
@@ -35,24 +36,25 @@ function App() {
       <Routes>
         {/* USER ROUTES */}
         <Route path="/sign-in" element={<SignIn />} />
-        <Route path="/sign-up" element={<SignUp />} />
+
+        <Route path="/register-otp" element={<RegisterWithOTP />} />
         <Route element={<IndexLayout />}>
-        <Route path="/dashboard" element={<Dashboard />} />     
-        <Route path="/my-portfolio" element={<Portfolio />} />     
-        <Route path="/public-relations" element={<PublicRelations />} />
-        <Route path="/certificate" element={<Certificate />} />
-        {/* <Route path="/template" element={<TemplatePort />} /> */}
-        
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/my-portfolio" element={<Portfolio />} />
+          <Route path="/public-relations" element={<PublicRelations />} />
+          <Route path="/certificate" element={<Certificate />} />
+          {/* <Route path="/template" element={<TemplatePort />} /> */}
+
         </Route>
 
 
         <Route path="/" element={<UniversalAnouncement />} />
-          <Route path="/template/view" element={<PortfolioView />} />
+        <Route path="/template/view" element={<PortfolioView />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-    
-          
+
+
         {/* </Route> */}
-   
+
         {/* ADMIN ROUTES */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<RequireAdminAuth><AdminLayout /></RequireAdminAuth>}>

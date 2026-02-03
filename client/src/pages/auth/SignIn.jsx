@@ -21,7 +21,7 @@ export default function SignIn() {
     try {
       // เรียก API ผ่าน authApi.js
       const result = await loginUser(formData);
-  
+
       await Swal.fire({
         icon: "success",
         title: "เข้าสู่ระบบสำเร็จ",
@@ -29,7 +29,7 @@ export default function SignIn() {
         confirmButtonText: "ตกลง",
         confirmButtonColor: "#2d5a3d", // เขียว primary ของคุณ
       });
-  
+
       navigate("/dashboard"); // ✅ เปลี่ยนไปหน้า dashboard
     } catch (err) {
       console.error("Login error:", err);
@@ -118,14 +118,14 @@ export default function SignIn() {
               เข้าสู่ระบบ
             </button>
             <Link
-              to="/sign-up"
+              to="/register-otp"
               className="flex-1 py-3 px-5 border-2 border-white/40 rounded-lg text-base font-medium 
                          text-white hover:bg-white/10 hover:border-white hover:-translate-y-0.5 transition"
             >
               สมัครสมาชิก
             </Link>
 
-            
+
           </div>
         </form>
 
@@ -133,7 +133,7 @@ export default function SignIn() {
         <div className="text-white/80 text-sm text-center mt-5 pt-5 border-t border-white/30">
           ยังไม่มีบัญชี?{" "}
           <Link
-            to="/sign-up"
+            to="/register-otp"
             className="text-green-light font-medium hover:text-green-300 hover:underline"
           >
             สมัครสมาชิก{" "}
@@ -151,7 +151,7 @@ export default function SignIn() {
           >
             ลืมรหัสผ่าน
           </Link>
-          
+
           <br />
           <span className="block mt-2">
             สำหรับนักศึกษาและศิษย์เก่าของมหาวิทยาลัยเทคโนโลยี่ราชมงคลเท่านั้น

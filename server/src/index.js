@@ -83,13 +83,13 @@ const initializeDatabase = async () => {
     await EmailBroadcast.createTable();
     // console.log('[DB] Database tables initialized successfully');
   } catch (error) {
-    // console.error('[DB] Database initialization failed:', error);
-    // console.error('Error details:', {
-    //   message: error.message,
-    //   code: error.code,
-    //   errno: error.errno,
-    //   sqlState: error.sqlState,
-    // });
+    console.error('[DB] Database initialization failed:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      errno: error.errno,
+      sqlState: error.sqlState,
+    });
     process.exit(1);
   }
 };

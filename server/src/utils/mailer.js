@@ -1,5 +1,9 @@
-// utils/mailer.js
 const nodemailer = require('nodemailer');
+
+console.log('[Mailer] Initializing...');
+console.log('[Mailer] Host:', process.env.SMTP_HOST);
+console.log('[Mailer] User:', process.env.SMTP_USER);
+console.log('[Mailer] Secure:', String(process.env.SMTP_SECURE || 'false') === 'true');
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,

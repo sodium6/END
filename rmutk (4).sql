@@ -275,6 +275,7 @@ CREATE TABLE `users` (
   `user_desc` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `phone` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
   `email` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_type` enum('student','alumni') COLLATE utf8mb4_unicode_ci DEFAULT 'student',
   `education` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
   `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -294,6 +295,26 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `title`, `first_name_th`, `last_name_th`, `first_name_en`, `last_name_en`, `user_desc`, `phone`, `email`, `education`, `password`, `created_at`, `st_id`, `st_id_canonical`, `status`, `approved_at`, `last_login`, `password_changed_at`, `updated_at`) VALUES
 (2, 'นางสาว', 'ทด', 'สอบ', 'ะ', 'test', NULL, '0645497841', 'archetypesodium@gmail.com', 'ปวช.', '$2b$12$86WhjCXoU1i5j4TQfYCWcOQn/Qbw4/PCk5unqLfBWSCAIGP4i2kgS', '2025-09-18 16:11:21', '66605100039-4', '666051000394', 'active', NULL, '2025-10-01 11:43:04', '2025-10-01 11:24:40', '2025-10-01 11:43:04'),
 (3, 'นางสาว', 'สมัคร', 'สอบ', 'Smack', 'Sob', 'TestTesttttttttttttttttttTestTesttttttttttttttttttTestTesttttttttttttttttttTestTesttttttttttttttttttTestTestttttttttttttttttt\nTestTesttttttttttttttttttTestTesttttttttttttttttttTestTesttttttttttttttttttTestTesttttttttttttttttttTestTestttttttttttttttttt\nTestTesttttttttttttttttttTestTesttttttttttttttttttTestTesttttttttttttttttttTestTesttttttttttttttttttTestTesttttttttttttttttt', '0645497841', 'test@gmail.com', 'ม.6', '$2b$10$ozznfOMBRdeIVPRJ.TtgRuGI.XfoeLskZs7UpibQeECDuvk3nuGBm', '2025-09-19 11:57:06', '66605100039-5', '666051000395', 'active', NULL, '2025-10-04 17:07:37', NULL, '2025-10-04 17:07:37');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `work_experiences`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `email_verifications`
+--
+
+CREATE TABLE `email_verifications` (
+  `id` int NOT NULL,
+  `email` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `otp_hash` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -358,6 +379,13 @@ ALTER TABLE `certificates`
 --
 ALTER TABLE `email_broadcasts`
   ADD PRIMARY KEY (`broadcast_id`);
+
+--
+-- Indexes for table `email_verifications`
+--
+ALTER TABLE `email_verifications`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `email` (`email`);
 
 --
 -- Indexes for table `file_upload`
@@ -442,6 +470,12 @@ ALTER TABLE `certificates`
 --
 ALTER TABLE `email_broadcasts`
   MODIFY `broadcast_id` int UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `email_verifications`
+--
+ALTER TABLE `email_verifications`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `file_upload`
