@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { registerUser, verifyOtp, resendOtp } from "../../services/authApi";
+import PrivacyPolicyModal from "../../components/PrivacyPolicyModal";
 
 export default function RegisterWithOTP() {
     const navigate = useNavigate();
@@ -25,6 +26,8 @@ export default function RegisterWithOTP() {
         password: "",
         confirm_password: "",
     });
+    const [acceptPdpa, setAcceptPdpa] = useState(false);
+    const [showPdpaModal, setShowPdpaModal] = useState(false);
 
     const handleChange = (e) => {
         let { name, value } = e.target;
@@ -55,6 +58,11 @@ export default function RegisterWithOTP() {
             formData.st_id_check.length !== 1
         ) {
             alert("กรุณากรอกรหัสนักศึกษาให้ครบ 11 หลัก + 1 หลัก");
+            return;
+        }
+
+        if (!acceptPdpa) {
+            alert("กรุณายอมรับนโยบายความเป็นส่วนตัว (PDPA) ก่อนสมัครสมาชิก");
             return;
         }
 
@@ -306,7 +314,42 @@ export default function RegisterWithOTP() {
                     </div>
 
                     {/* Buttons */}
-                    <div className="flex gap-4 mt-8 pt-4">
+                    <div className="mt-6 mb-4">
+                        <label className="flex items-start gap-3 cursor-pointer group">
+                            <div className="relative flex items-center">
+                                <input
+                                    type="checkbox"
+                                    checked={acceptPdpa}
+                                    onChange={(e) => setAcceptPdpa(e.target.checked)}
+                                    className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border-2 border-white/50 bg-white/10 transition-all checked:border-green-400 checked:bg-green-500 hover:border-white"
+                                />
+                                <svg
+                                    className="pointer-events-none absolute left-1/2 top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity peer-checked:opacity-100 text-white"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth="3"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                </svg>
+                            </div>
+                            <span className="text-white/90 text-sm leading-snug group-hover:text-white transition-colors select-none">
+                                ข้าพเจ้ายอมรับ <span className="font-bold text-green-300">ข้อตกลงและเงื่อนไข</span> และ
+                                <span
+                                    className="font-bold text-green-300 hover:text-green-200 underline cursor-pointer ml-1"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        setShowPdpaModal(true);
+                                    }}
+                                >
+                                    นโยบายความเป็นส่วนตัว (PDPA)
+                                </span>
+                                ในการเก็บรวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคลเพื่อการให้บริการของระบบ
+                            </span>
+                        </label>
+                    </div>
+
+                    <div className="flex gap-4 mt-2 pt-2">
                         <button
                             type="submit"
                             disabled={loading}
@@ -326,6 +369,11 @@ export default function RegisterWithOTP() {
                     มีบัญชีแล้ว? <Link to="/" className="text-green-300 font-bold hover:underline">เข้าสู่ระบบ</Link>
                 </div>
             </div>
+
+            <PrivacyPolicyModal
+                isOpen={showPdpaModal}
+                onClose={() => setShowPdpaModal(false)}
+            />
         </div>
     );
 }
