@@ -4,7 +4,7 @@ import { getNews, getNewsById, subscribe } from "../../services/newsApi";
 const API_BASE =
   (typeof import.meta !== "undefined" &&
     import.meta.env &&
-    import.meta.env.VITE_API_BASE_URL) ||
+    import.meta.env.VITE_API_BASE) ||
   "";
 
 export default function UniversalAnouncement() {
@@ -25,7 +25,9 @@ export default function UniversalAnouncement() {
   const absUrl = (maybeUrl) => {
     if (!maybeUrl) return "";
     if (/^https?:\/\//i.test(maybeUrl)) return maybeUrl;
-    const base = API_BASE || window.location.origin;
+    // Strip '/api' from the base URL if present, as uploads are served from root
+    // VITE_API_BASE is http://localhost:3000/api, we need http://localhost:3000
+    const base = (API_BASE || window.location.origin).replace(/\/api\/?$/, "");
     return `${base}${maybeUrl}`;
   };
 
@@ -93,9 +95,9 @@ export default function UniversalAnouncement() {
   const fmtDate = (d) =>
     d
       ? new Date(d).toLocaleString("th-TH", {
-          dateStyle: "medium",
-          timeStyle: "short",
-        })
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
       : "-";
 
   // Pagination calculation
@@ -142,7 +144,7 @@ export default function UniversalAnouncement() {
                 🎓 มหาวิทยาลัยเทคโนโลยีราชมงคลกรุงเทพ
               </span>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <a
                 href="/sign-in"
@@ -199,14 +201,14 @@ export default function UniversalAnouncement() {
           </div>
 
           <div className="grid gap-6">
-            {currentNews.map((news) => {
+            {currentNews.map((news, index) => {
               const imgSrc =
                 news.featured_image_full ||
                 absUrl(news.featured_image_url) ||
                 "";
               return (
                 <article
-                  key={news.news_id}
+                  key={news.news_id || index}
                   className="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-emerald-100"
                 >
                   {imgSrc && (
@@ -224,7 +226,7 @@ export default function UniversalAnouncement() {
                       </div>
                     </div>
                   )}
-                  
+
                   <div className="p-6">
                     <div className="flex items-start justify-between gap-4 mb-4">
                       <div className="flex-1">
@@ -277,11 +279,10 @@ export default function UniversalAnouncement() {
                       <button
                         key={pageNumber}
                         onClick={() => paginate(pageNumber)}
-                        className={`w-10 h-10 rounded-lg font-medium transition-all duration-200 shadow-sm ${
-                          currentPage === pageNumber
-                            ? "bg-gradient-to-r from-emerald-600 to-green-600 text-white shadow-md"
-                            : "bg-white text-emerald-700 border border-emerald-300 hover:bg-emerald-50"
-                        }`}
+                        className={`w-10 h-10 rounded-lg font-medium transition-all duration-200 shadow-sm ${currentPage === pageNumber
+                          ? "bg-gradient-to-r from-emerald-600 to-green-600 text-white shadow-md"
+                          : "bg-white text-emerald-700 border border-emerald-300 hover:bg-emerald-50"
+                          }`}
                       >
                         {pageNumber}
                       </button>
@@ -316,22 +317,22 @@ export default function UniversalAnouncement() {
                 {fmtDate(newsById.created_at)} • {newsById.category || "ทั่วไป"}
               </p>
             </div>
-            
+
             {(newsById.featured_image_full ||
               absUrl(newsById.featured_image_url)) && (
-              <div className="relative w-full bg-gradient-to-br from-emerald-50 to-teal-50">
-                <img
-                  src={
-                    newsById.featured_image_full ||
-                    absUrl(newsById.featured_image_url)
-                  }
-                  alt={newsById.title}
-                  className="w-full object-contain"
-                  style={{ maxHeight: '500px' }}
-                />
-              </div>
-            )}
-            
+                <div className="relative w-full bg-gradient-to-br from-emerald-50 to-teal-50">
+                  <img
+                    src={
+                      newsById.featured_image_full ||
+                      absUrl(newsById.featured_image_url)
+                    }
+                    alt={newsById.title}
+                    className="w-full object-contain"
+                    style={{ maxHeight: '500px' }}
+                  />
+                </div>
+              )}
+
             <div className="p-6">
               <p className="whitespace-pre-line text-gray-700 leading-relaxed text-lg">
                 {newsById.content}
@@ -375,11 +376,10 @@ export default function UniversalAnouncement() {
 
             {emailMsg && (
               <div
-                className={`mt-4 p-3 rounded-xl ${
-                  submitted
-                    ? "bg-green-100 text-green-800"
-                    : "bg-red-100 text-red-800"
-                } font-medium shadow-sm`}
+                className={`mt-4 p-3 rounded-xl ${submitted
+                  ? "bg-green-100 text-green-800"
+                  : "bg-red-100 text-red-800"
+                  } font-medium shadow-sm`}
               >
                 {emailMsg}
               </div>

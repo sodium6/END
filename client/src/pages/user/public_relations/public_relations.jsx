@@ -4,7 +4,7 @@ import { getNews, getNewsById, subscribe } from "../../../services/newsApi";
 const API_BASE =
   (typeof import.meta !== "undefined" &&
     import.meta.env &&
-    import.meta.env.VITE_API_BASE_URL) ||
+    import.meta.env.VITE_API_BASE) ||
   "";
 
 export default function PublicRelations() {
@@ -19,12 +19,12 @@ export default function PublicRelations() {
   const [submitted, setSubmitted] = useState(false);
   const [emailMsg, setEmailMsg] = useState("");
 
-  // helper: แปลงพาธรูปให้เป็น absolute url
   const absUrl = (maybeUrl) => {
     if (!maybeUrl) return "";
     if (/^https?:\/\//i.test(maybeUrl)) return maybeUrl;
-    // ถ้า backend ส่งเป็น /uploads/... ให้ต่อ base
-    const base = API_BASE || window.location.origin;
+    // Strip '/api' from the base URL if present, as uploads are served from root
+    // VITE_API_BASE is http://localhost:3000/api, we need http://localhost:3000
+    const base = (API_BASE || window.location.origin).replace(/\/api\/?$/, "");
     return `${base}${maybeUrl}`;
   };
 
