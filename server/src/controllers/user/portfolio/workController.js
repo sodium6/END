@@ -61,8 +61,9 @@ const getWorkByUser = async (req, res) => {
 const addWork = async (req, res) => {
   try {
     const { jobTitle, startDate, endDate, jobDescription, portfolioLink } = req.body;
+
     const safeStart = startDate?.trim() ? startDate : null;
-    const safeEnd   = endDate?.trim() ? endDate : null;
+    const safeEnd = endDate?.trim() ? endDate : null;
 
     const [result] = await pool.query(
       `INSERT INTO work_experiences 
@@ -91,7 +92,7 @@ const updateWork = async (req, res) => {
   try {
     const { jobTitle, startDate, endDate, jobDescription, portfolioLink } = req.body;
     const safeStart = startDate?.trim() ? startDate : null;
-    const safeEnd   = endDate?.trim() ? endDate : null;
+    const safeEnd = endDate?.trim() ? endDate : null;
 
     await pool.query(
       `UPDATE work_experiences 

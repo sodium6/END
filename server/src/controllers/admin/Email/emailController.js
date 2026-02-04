@@ -41,7 +41,7 @@ function fileFromRelUrl(relUrl) {
   for (const p of candidates) {
     try {
       if (fs.existsSync(p) && fs.statSync(p).isFile()) return p;
-    } catch {}
+    } catch { }
   }
 
   if (EMAIL_DEBUG) {
@@ -198,12 +198,12 @@ async function getSubscribers() {
 
 // เตรียม nodemailer transporter (Brevo: host=smtp-relay.brevo.com, user='apikey', pass=<api_key>)
 async function getTransporter() {
-  const host   = process.env.SMTP_HOST;
-  const port   = Number(process.env.SMTP_PORT || 587);
+  const host = process.env.SMTP_HOST;
+  const port = Number(process.env.SMTP_PORT || 587);
   const secure = String(process.env.SMTP_SECURE || 'false').toLowerCase() === 'true';
-  const user   = process.env.SMTP_USER;
-  const pass   = process.env.SMTP_PASS;
-  const debug  = String(process.env.EMAIL_DEBUG || '').toLowerCase() === 'true';
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  const debug = String(process.env.EMAIL_DEBUG || '').toLowerCase() === 'true';
 
   const transporter = nodemailer.createTransport({
     host,
@@ -445,3 +445,33 @@ exports.broadcastBulk = async (req, res) => {
   }
 };
 
+// Helper exported for adminContentController
+exports.sendNewsNotification = async (req, newsId, message = '') => {
+  try {
+    const news = await getPublishedNewsById(newsId);
+    if (!news) return { ok: false, message: 'news_not_found_or_not_published' };
+
+    const subject = `ข่าวประชาสัมพันธ์: ${news.title}`;
+    const { html, attachments } = buildSingleNewsEmail(req, news, message);
+
+    const transporter = await getTransporter();
+    const recipients = await getSubscribers();
+    let sent = 0, failed = 0;
+
+    // Send in background or await? 
+    // Await to ensure it works, but don't block too long? 
+    // For now, simple loop as in broadcastNews
+    for (const to of recipients) {
+      try {
+        await transporter.sendMail({ from: process.env.MAIL_FROM, to, subject, html, attachments });
+        sent++;
+      } catch {
+        failed++;
+      }
+    }
+    return { ok: true, total: recipients.length, sent, failed };
+  } catch (e) {
+    console.error('[email] sendNewsNotification failed:', e);
+    return { ok: false, error: e.message };
+  }
+};

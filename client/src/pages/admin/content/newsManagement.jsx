@@ -22,21 +22,21 @@ export default function NewsManagement() {
   const where = useMemo(() => (q?.trim() ? q.trim() : ""), [q]);
 
   const fetchNews = useCallback(async () => {
-  try {
-    setLoading(true); setErr('');
-    const { data, total } = await adminApi.getNews({
-      page,
-      pageSize: PAGE_SIZE,
-      q: where,                     // คีย์เวิร์ด: หัวข้อ/หมวดหมู่/สถานะ/วันที่ (แบบ to_char)
-      status: status || undefined,  // ฟิลเตอร์สถานะเฉพาะเจาะจง
-      dateFrom: dateFrom || undefined,
-      dateTo: dateTo || undefined,
-      excludeCategory: ANNOUNCEMENT_CATEGORY,
-    });
-    setNews(data || []); setTotal(total || 0);
-  } catch (e) { setErr(e.message || 'ไม่สามารถโหลดข่าวได้'); }
-  finally { setLoading(false); }
-}, [page, where, status, dateFrom, dateTo]);
+    try {
+      setLoading(true); setErr('');
+      const { data, total } = await adminApi.getNews({
+        page,
+        pageSize: PAGE_SIZE,
+        q: where,                     // คีย์เวิร์ด: หัวข้อ/หมวดหมู่/สถานะ/วันที่ (แบบ to_char)
+        status: status || undefined,  // ฟิลเตอร์สถานะเฉพาะเจาะจง
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
+        excludeCategory: ANNOUNCEMENT_CATEGORY,
+      });
+      setNews(data || []); setTotal(total || 0);
+    } catch (e) { setErr(e.message || 'ไม่สามารถโหลดข่าวได้'); }
+    finally { setLoading(false); }
+  }, [page, where, status, dateFrom, dateTo]);
 
 
   const handleEdit = (newsId) => {
@@ -74,6 +74,12 @@ export default function NewsManagement() {
             autoComplete="off"
             className="px-3 py-2 border rounded-md w-80"
           />
+          <Link
+            to="/admin/content/news/categories"
+            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+          >
+            จัดการหมวดหมู่
+          </Link>
           <Link
             to="/admin/content/news/create"
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"

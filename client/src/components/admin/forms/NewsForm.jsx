@@ -12,6 +12,9 @@ const NewsForm = ({
   loading,
   error,
   categoryLocked = false,
+  categories = [], // Dynamic categories
+  sendNotification = false,
+  setSendNotification,
 }) => {
   const [previewUrl, setPreviewUrl] = useState('');
 
@@ -30,7 +33,11 @@ const NewsForm = ({
   }, [previewUrl]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
+    if (name === 'send_notification') {
+      if (setSendNotification) setSendNotification(checked);
+      return;
+    }
     setNewsItem((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -45,12 +52,12 @@ const NewsForm = ({
       // เก็บไฟล์ไว้ใน state หลัก (ให้ parent ใช้ตอน submit)
       setNewsItem((prev) => ({
         ...prev,
-        _file: file,                 // <-- ไฟล์จริง
+        featured_image: file,        // <-- ใช้ชื่อนี้ให้ตรงกับที่ handleSubmit เรียกใช้
         remove_featured_image: '0',  // ถ้ามีไฟล์ใหม่แปลว่าไม่ลบรูป
       }));
     } else {
       setPreviewUrl('');
-      setNewsItem((prev) => ({ ...prev, _file: null }));
+      setNewsItem((prev) => ({ ...prev, featured_image: null }));
     }
   };
 
@@ -59,15 +66,19 @@ const NewsForm = ({
     setPreviewUrl('');
     setNewsItem((prev) => ({
       ...prev,
-      _file: null,
+      featured_image: null,
       featured_image_url: null,
       featured_image_full: null,
       remove_featured_image: '1', // ให้ backend ลบรูปเก่า
     }));
   };
 
-  const currentCategory = newsItem.category || '';
-  const hasPresetCategory = categoryOptions.some((o) => o.value === currentCategory);
+  // Logic for category value
+  // If locked, usually announcement.
+  // If not locked, use category_id or fallback
+  const currentCategoryValue = categoryLocked
+    ? 'announcement'
+    : (newsItem.category_id || newsItem.category || '');
 
   return (
     <form onSubmit={onSubmit} className="space-y-6 bg-white p-8 rounded-lg shadow-md">
@@ -100,18 +111,27 @@ const NewsForm = ({
       <div>
         <label className="block text-sm font-medium text-gray-700">หมวดหมู่</label>
         <select
-          name="category"
-          value={currentCategory}
+          name={categoryLocked ? 'category' : 'category_id'}
+          value={currentCategoryValue}
           onChange={handleChange}
           disabled={categoryLocked}
           className="mt-1 block w-full px-3 py-2 border rounded-md disabled:bg-gray-100"
         >
           <option value="" disabled>เลือกหมวดหมู่</option>
-          {categoryOptions.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-          {!hasPresetCategory && currentCategory && (
-            <option value={currentCategory}>{currentCategory}</option>
+          {categoryLocked && <option value="announcement">ประกาศ</option>}
+
+          {!categoryLocked && categories.length > 0 ? (
+            categories.map((c) => (
+              <option key={c.category_id} value={c.category_id}>{c.name}</option>
+            ))
+          ) : (
+            // Fallback options if no categories loaded yet or legacy
+            !categoryLocked && (
+              <>
+                <option value="news">ข่าว</option>
+                {/* Add standard preset options if needed, but better to rely on DB */}
+              </>
+            )
           )}
         </select>
         {categoryLocked && (
@@ -133,6 +153,23 @@ const NewsForm = ({
           <option value="published">เผยแพร่แล้ว</option>
         </select>
       </div>
+
+      {/* Notification Checkbox - Only show if current status (or selected status) is published */}
+      {(newsItem.status === 'published' && setSendNotification) && (
+        <div className="flex items-center">
+          <input
+            id="send_notification"
+            name="send_notification"
+            type="checkbox"
+            checked={sendNotification}
+            onChange={handleChange}
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          />
+          <label htmlFor="send_notification" className="ml-2 block text-sm text-gray-900">
+            ส่งอีเมลแจ้งเตือนไปยังผู้ติดตาม (เมื่อกดบันทึก)
+          </label>
+        </div>
+      )}
 
       {/* อัปโหลดรูป + พรีวิว */}
       <div>

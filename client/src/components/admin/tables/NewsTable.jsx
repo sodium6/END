@@ -40,14 +40,13 @@ const NewsTable = ({ news, onEdit, onDelete }) => {
           {news.map((item) => (
             <tr key={item.news_id} className="border-t hover:bg-gray-50">
               <td className="px-4 py-3 font-medium">{item.title}</td>
-              <td className="px-4 py-3">{formatCategory(item.category)}</td>
+              <td className="px-4 py-3">{item.category_name || formatCategory(item.category)}</td>
               <td className="px-4 py-3">
                 <span
-                  className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    item.status === 'published'
+                  className={`px-2 py-1 rounded-full text-xs font-medium ${item.status === 'published'
                       ? 'bg-green-100 text-green-800'
                       : 'bg-gray-100 text-gray-800'
-                  }`}
+                    }`}
                 >
                   {formatStatus(item.status)}
                 </span>

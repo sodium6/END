@@ -42,6 +42,13 @@ router.get('/analytics/summary', adminAuth, requireRole(['superadmin', 'admin'])
 router.get('/email/broadcasts', adminAuth, requireRole(['superadmin']), listBroadcasts);
 router.post('/email/broadcasts', adminAuth, requireRole(['superadmin']), sendBroadcast);
 
+// News Categories
+const { getAllCategories, createCategory, updateCategory, deleteCategory } = require('../controllers/admin/newsCategoryController');
+router.get('/news/categories', adminAuth, requireRole(['superadmin', 'admin']), getAllCategories);
+router.post('/news/categories', adminAuth, requireRole(['superadmin', 'admin']), createCategory);
+router.put('/news/categories/:id', adminAuth, requireRole(['superadmin', 'admin']), updateCategory);
+router.delete('/news/categories/:id', adminAuth, requireRole(['superadmin', 'admin']), deleteCategory);
+
 // Content management (News)
 router.get('/news', adminAuth, requireRole(['superadmin', 'admin']), getAllNews);
 router.get('/news/:id', adminAuth, requireRole(['superadmin', 'admin']), getNewsById);
@@ -49,14 +56,6 @@ router.post('/news', adminAuth, requireRole(['superadmin', 'admin']), createNews
 router.put('/news/:id', adminAuth, requireRole(['superadmin', 'admin']), updateNews);
 router.delete('/news/:id', adminAuth, requireRole(['superadmin', 'admin']), deleteNews);
 
-
-// สรุป subscribers
-router.get(
-  '/email/subscribers/summary',
-  adminAuth,
-  requireRole(['superadmin', 'admin']),
-  subscribersSummary
-);
 
 // ส่งข่าวเดี่ยว
 router.post(

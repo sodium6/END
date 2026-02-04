@@ -113,6 +113,27 @@ export const adminApi = {
     const { data } = await api.delete(`admin/news/${newsId}`);
     return data;
   },
+
+  // Category API
+  getCategories: async () => {
+    const { data } = await api.get('admin/news/categories');
+    return data; // { categories: [] }
+  },
+
+  createCategory: async (categoryData) => {
+    const { data } = await api.post('admin/news/categories', categoryData);
+    return data;
+  },
+
+  updateCategory: async (categoryId, categoryData) => {
+    const { data } = await api.put(`admin/news/categories/${categoryId}`, categoryData);
+    return data;
+  },
+
+  deleteCategory: async (categoryId) => {
+    const { data } = await api.delete(`admin/news/categories/${categoryId}`);
+    return data;
+  },
 };
 
 

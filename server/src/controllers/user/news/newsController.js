@@ -25,14 +25,14 @@ exports.listNews = async (req, res) => {
 
     const pageNum = Math.max(parseInt(page, 10) || 1, 1);
     const perPage = Math.min(Math.max(parseInt(per_page, 10) || 10, 1), 100);
-    const offset  = (pageNum - 1) * perPage;
+    const offset = (pageNum - 1) * perPage;
 
     // WHERE + params
     const where = [];
     const params = [];
 
-    if (status)   { where.push("status = ?");        params.push(status); }
-    if (category) { where.push("category = ?");      params.push(category); }
+    if (status) { where.push("status = ?"); params.push(status); }
+    if (category) { where.push("category = ?"); params.push(category); }
     if (q) {
       where.push("(title LIKE ? OR content LIKE ?)");
       params.push(`%${q}%`, `%${q}%`);
@@ -53,9 +53,11 @@ exports.listNews = async (req, res) => {
     // data
     const [rows] = await pool.query(
       `
-      SELECT news_id, title, content, admin_id, status, category,
-             featured_image_url, created_at, updated_at
-      FROM news
+      SELECT n.news_id, n.title, n.content, n.admin_id, n.status, n.category,
+             n.featured_image_url, n.created_at, n.updated_at,
+             nc.name AS category_name
+      FROM news n
+      LEFT JOIN news_categories nc ON n.category_id = nc.category_id
       ${whereSql}
       ORDER BY ${col} ${dir}
       LIMIT ? OFFSET ?
@@ -69,7 +71,7 @@ exports.listNews = async (req, res) => {
       id: r.news_id,
       title: r.title,
       content: r.content,
-      category: r.category,
+      category: r.category_name || r.category, // Prefer category_name
       status: r.status,
       featured_image_url: r.featured_image_url,
       featured_image_full: toFullUrl(res.req, r.featured_image_url), // ✅ absolute
@@ -102,10 +104,12 @@ exports.getNews = async (req, res) => {
 
     const [rows] = await pool.query(
       `
-      SELECT news_id, title, content, admin_id, status, category,
-             featured_image_url, created_at, updated_at
-      FROM news
-      WHERE news_id = ?
+      SELECT n.news_id, n.title, n.content, n.admin_id, n.status, n.category,
+             n.featured_image_url, n.created_at, n.updated_at,
+             nc.name AS category_name
+      FROM news n
+      LEFT JOIN news_categories nc ON n.category_id = nc.category_id
+      WHERE n.news_id = ?
       `,
       [id]
     );
@@ -117,7 +121,7 @@ exports.getNews = async (req, res) => {
       id: r.news_id,
       title: r.title,
       content: r.content,
-      category: r.category,
+      category: r.category_name || r.category, // Prefer category_name
       status: r.status,
       featured_image_url: r.featured_image_url,
       featured_image_full: toFullUrl(res.req, r.featured_image_url), // ✅ absolute

@@ -16,6 +16,8 @@ function getBaseUrl(req) {
 
 
 
+router.get("/test", (req, res) => res.json({ msg: "Portfolio Router OK" }));
+
 /* ---------------- USERS ---------------- */
 router.get("/users/:id", userController.getUserProfile);
 router.put("/users/:id", userController.updateUserProfile);

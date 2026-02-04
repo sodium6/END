@@ -4,7 +4,7 @@ const fs = require("fs");
 const multer = require("multer");
 
 // โฟลเดอร์ปลายทาง เช่น <project>/src/uploads/portfolio_image
-const uploadDir = path.join(__dirname, "..", "uploads", "portfolio_image");
+const uploadDir = path.join(__dirname, "../../uploads/portfolio_image");
 fs.mkdirSync(uploadDir, { recursive: true });
 
 // แปลง latin1 -> utf8 สำหรับชื่อไฟล์ที่ browser ส่งมา

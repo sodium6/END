@@ -7,6 +7,7 @@ const { NotFoundError } = require('./utils/error.js');
 const routes = require('./routes/index.js');
 const Admin = require('./models/Admin.js');
 const News = require('./models/News.js');
+const NewsCategory = require('./models/NewsCategory.js');
 const User = require('./models/User.js');
 const UserEducation = require('./models/UserEducation.js');
 const UserSocial = require('./models/UserSocial.js');
@@ -81,6 +82,7 @@ const initializeDatabase = async () => {
       // console.log('[Admin] Default admin created with username:', process.env.DEFAULT_STAFF_ADMIN_USERNAME || 'admin');
     }
 
+    await NewsCategory.createTable();
     await News.createTable();
     await UserEducation.createTable();
     await UserSocial.createTable();
@@ -100,3 +102,13 @@ app.listen(PORT, async () => {
 });
 
 
+
+// restart
+// restart
+// restart fix sql
+// work page added
+// restart work debug
+// restart debug 2
+// restart debug 3
+// restart final attempt
+// restart to clean state

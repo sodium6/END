@@ -16,6 +16,11 @@ export default function UserProfile() {
   }, []);
 
   const fetchProfile = async (force) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     try {
       if (force) setLoading(true);
       const data = await getProfile();

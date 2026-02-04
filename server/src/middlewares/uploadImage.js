@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 
-const UP_BASE = path.join(__dirname, '..', 'uploads', 'news');
+const UP_BASE = path.join(__dirname, '..', '..', 'uploads', 'news');
 
 // ให้แน่ใจว่าโฟลเดอร์มีอยู่
 fs.mkdirSync(UP_BASE, { recursive: true });
