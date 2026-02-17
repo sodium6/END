@@ -6,6 +6,18 @@ const activityController = require("../controllers/user/portfolio/activityContro
 const sportController = require("../controllers/user/portfolio/sportController");
 const { upload } = require("../middlewares/uploadPortfolioFiles");
 const router = require('express').Router();
+const puppeteer = require("puppeteer");
+// ช่วยประกอบ base URL ให้ถูก (รองรับ reverse proxy)
+function getBaseUrl(req) {
+  const proto = req.get("x-forwarded-proto") || req.protocol;
+  const host = req.get("x-forwarded-host") || req.get("host");
+  return `${proto}://${host}`;
+}
+
+
+
+router.get("/test", (req, res) => res.json({ msg: "Portfolio Router OK" }));
+
 /* ---------------- USERS ---------------- */
 router.get("/users/:id", userController.getUserProfile);
 router.put("/users/:id", userController.updateUserProfile);
@@ -46,6 +58,9 @@ router.get("/sports/:userId", sportController.getSports);
 router.post("/sports/:userId", sportController.addSport);
 router.put("/sports/:id", sportController.updateSport);
 router.delete("/sports/:id", sportController.deleteSport);
+
+
+
 
 
 

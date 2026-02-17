@@ -287,35 +287,36 @@ const Portfolio = () => {
           alert("ลบรูปกิจกรรมไม่สำเร็จ");
         }
       };
-      
 
 
-    // ปุ่มลบกิจกรรม
-    const removeActivity = async (id) => {
-        const ok = await confirmDelete();
-        if (!ok) return;
 
-        const prev = activities; // เก็บ state เดิมไว้เผื่อ rollback
-        // ตัดออกจาก UI ก่อน (optimistic)
-        // setActivities((p) => p.filter((a) => a.id !== id));
-        setActivities((Array.isArray(acts) ? acts : []).map(a => ({ ...a, photos: a.photos || [] })));
 
-        // ถ้าเป็นแถวชั่วคราว (ยังไม่บันทึก DB) ไม่ต้องยิง API
-        if (isTempId(id)) {
-            Swal.fire({ icon: 'success', title: 'ลบสำเร็จ', timer: 1200, showConfirmButton: false });
-            return;
-        }
+const removeActivity = async (id) => {
+  const ok = await confirmDelete('ยืนยันการลบกิจกรรม?', 'ลบรายการนี้ออกจากหมวดกิจกรรม');
+  if (!ok) return;
 
-        try {
-            await apiDeleteActivity(id);
-            Swal.fire({ icon: 'success', title: 'ลบสำเร็จ', timer: 1200, showConfirmButton: false });
-        } catch (err) {
-            console.error('deleteActivity error:', err);
-            // rollback ถ้าลบไม่สำเร็จ
-            setActivities(prev);
-            Swal.fire({ icon: 'error', title: 'ลบไม่สำเร็จ', text: 'เกิดข้อผิดพลาด กรุณาลองใหม่' });
-        }
-    };
+  // เก็บ state เดิมไว้เผื่อ rollback (clone เพื่อความปลอดภัย)
+  const prev = [...activities];
+
+  // ตัดออกจาก UI ก่อน (optimistic)
+  setActivities((p) => p.filter((a) => a.id !== id));
+
+  // ถ้าเป็นแถวชั่วคราว (ยังไม่บันทึก DB) ไม่ต้องยิง API
+  if (isTempId(id)) {
+    Swal.fire({ icon: 'success', title: 'ลบสำเร็จ', timer: 1200, showConfirmButton: false });
+    return;
+  }
+
+  try {
+    await apiDeleteActivity(id);
+    Swal.fire({ icon: 'success', title: 'ลบสำเร็จ', timer: 1200, showConfirmButton: false });
+  } catch (err) {
+    console.error('deleteActivity error:', err);
+    // rollback ถ้าลบไม่สำเร็จ
+    setActivities(prev);
+    Swal.fire({ icon: 'error', title: 'ลบไม่สำเร็จ', text: 'เกิดข้อผิดพลาด กรุณาลองใหม่' });
+  }
+};
 
     const updateActivityRow = (id, field, value) => {
         setActivities((prev) => prev.map((a) => (a.id === id ? { ...a, [field]: value } : a)));

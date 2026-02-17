@@ -6,11 +6,11 @@ import MemberTable from '../../../components/admin/tables/MemberTable';
 
 const PAGE_SIZE = 10;
 const MEMBER_STATUS_OPTIONS = [
-  { value: '', label: 'All statuses' },
-  { value: 'pending', label: 'Pending approval' },
-  { value: 'active', label: 'Active' },
-  { value: 'suspended', label: 'Suspended' },
-  { value: 'rejected', label: 'Rejected' },
+  { value: '', label: 'ทุกสถานะ' },
+  { value: 'pending', label: 'รอการอนุมัติ' },
+  { value: 'active', label: 'ใช้งานอยู่' },
+  { value: 'suspended', label: 'ถูกระงับ' },
+  { value: 'rejected', label: 'ถูกปฏิเสธ' },
 ];
 
 export default function UserManagement() {
@@ -50,7 +50,7 @@ export default function UserManagement() {
       setAdminUsers(data || []);
       setAdminTotal(total || 0);
     } catch (error) {
-      setAdminError(error?.message || 'Failed to load admin accounts.');
+      setAdminError(error?.message || 'ไม่สามารถโหลดบัญชีผู้ดูแลระบบได้');
     } finally {
       setAdminLoading(false);
     }
@@ -69,7 +69,7 @@ export default function UserManagement() {
       setMembers(data || []);
       setMemberTotal(total || 0);
     } catch (error) {
-      setMemberError(error?.message || 'Failed to load members.');
+      setMemberError(error?.message || 'ไม่สามารถโหลดสมาชิกได้');
     } finally {
       setMemberLoading(false);
     }
@@ -92,24 +92,24 @@ export default function UserManagement() {
   };
 
   const handleDeleteAdmin = async (userId) => {
-    if (!window.confirm('Are you sure you want to delete this admin account?')) {
+    if (!window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบบัญชีผู้ดูแลระบบนี้')) {
       return;
     }
     try {
       await adminApi.deleteUser(userId);
       fetchAdmins();
     } catch (error) {
-      setAdminError(error?.message || 'Failed to delete admin account.');
+      setAdminError(error?.message || 'ไม่สามารถลบบัญชีผู้ดูแลระบบได้');
     }
   };
 
   const handleMemberStatusChange = useCallback(
     async (memberId, nextStatus) => {
-      let confirmationMessage = 'Are you sure?';
+      let confirmationMessage = 'คุณแน่ใจหรือไม่?';
       if (nextStatus === 'active') {
-        confirmationMessage = 'Activate this member account?';
+        confirmationMessage = 'เปิดใช้งานบัญชีสมาชิกนี้หรือไม่';
       } else if (nextStatus === 'suspended') {
-        confirmationMessage = 'Suspend this member account?';
+        confirmationMessage = 'ระงับบัญชีสมาชิกนี้หรือไม่';
       }
       if (!window.confirm(confirmationMessage)) {
         return;
@@ -118,7 +118,7 @@ export default function UserManagement() {
         await adminApi.updateMemberStatus(memberId, nextStatus);
         fetchMembers();
       } catch (error) {
-        setMemberError(error?.response?.data?.message || error?.message || 'Failed to update member status.');
+        setMemberError(error?.response?.data?.message || error?.message || 'ไม่สามารถอัปเดตสถานะสมาชิกได้');
       }
     },
     [fetchMembers]
@@ -126,7 +126,7 @@ export default function UserManagement() {
 
   const handleResetMemberPassword = useCallback(
     async (memberId) => {
-      const input = window.prompt('Enter a new password (leave blank to auto-generate):', '');
+      const input = window.prompt('ป้อนรหัสผ่านใหม่ (เว้นว่างไว้เพื่อสร้างอัตโนมัติ):', '');
       if (input === null) {
         return;
       }
@@ -134,12 +134,12 @@ export default function UserManagement() {
       try {
         const { newPassword, generated } = await adminApi.resetMemberPassword(memberId, trimmed);
         const message = generated
-          ? `New password generated: ${newPassword}`
-          : 'Password updated successfully.';
+          ? `สร้างรหัสผ่านใหม่แล้ว: ${newPassword}`
+          : 'อัปเดตรหัสผ่านสำเร็จแล้ว';
         alert(message);
         fetchMembers();
       } catch (error) {
-        setMemberError(error?.response?.data?.message || error?.message || 'Failed to reset password.');
+        setMemberError(error?.response?.data?.message || error?.message || 'ไม่สามารถรีเซ็ตรหัสผ่านได้');
       }
     },
     [fetchMembers]
@@ -147,14 +147,14 @@ export default function UserManagement() {
 
   const handleDeleteMember = useCallback(
     async (memberId) => {
-      if (!window.confirm('Delete this member account? This cannot be undone.')) {
+      if (!window.confirm('ลบบัญชีสมาชิกนี้หรือไม่? การกระทำนี้ไม่สามารถยกเลิกได้')) {
         return;
       }
       try {
         await adminApi.deleteMember(memberId);
         fetchMembers();
       } catch (error) {
-        setMemberError(error?.response?.data?.message || error?.message || 'Failed to delete member.');
+        setMemberError(error?.response?.data?.message || error?.message || 'ไม่สามารถลบสมาชิกได้');
       }
     },
     [fetchMembers]
@@ -165,7 +165,7 @@ export default function UserManagement() {
     return (
       <div className="flex items-center justify-between p-4">
         <span className="text-sm text-gray-500">
-          Total {totalCount} items � Page {currentPage} of {totalPages}
+          ทั้งหมด {totalCount} รายการ  หน้า {currentPage} จาก {totalPages}
         </span>
         <div className="flex gap-2">
           <button
@@ -173,14 +173,14 @@ export default function UserManagement() {
             onClick={() => onChangePage((prev) => Math.max(1, prev - 1))}
             className="px-3 py-1.5 rounded border disabled:opacity-50"
           >
-            Previous
+            ก่อนหน้า
           </button>
           <button
             disabled={currentPage >= totalPages}
             onClick={() => onChangePage((prev) => prev + 1)}
             className="px-3 py-1.5 rounded border disabled:opacity-50"
           >
-            Next
+            ถัดไป
           </button>
         </div>
       </div>
@@ -197,14 +197,14 @@ export default function UserManagement() {
           onClick={() => setView('admin')}
           className={`px-4 py-2 rounded-md border ${isAdminView ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}
         >
-          Admin Accounts
+          บัญชีผู้ดูแลระบบ
         </button>
         <button
           type="button"
           onClick={() => setView('member')}
           className={`px-4 py-2 rounded-md border ${!isAdminView ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}
         >
-          General Members
+          สมาชิกทั่วไป
         </button>
       </div>
 
@@ -221,7 +221,7 @@ export default function UserManagement() {
                 setMemberSearch(e.target.value);
               }
             }}
-            placeholder={isAdminView ? 'Search by username or email' : 'Search by name, email, or student ID'}
+            placeholder={isAdminView ? 'ค้นหาด้วยชื่อผู้ใช้หรืออีเมล' : 'ค้นหาด้วยชื่อ, อีเมล, หรือรหัสนักศึกษา'}
             className="px-3 py-2 border rounded-md w-64"
           />
 
@@ -247,7 +247,7 @@ export default function UserManagement() {
           to="/admin/users/create"
           className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
         >
-          + New Account
+          + สร้างบัญชีใหม่
         </Link>
       </div>
 
@@ -255,7 +255,7 @@ export default function UserManagement() {
         <>
           {adminError && <div className="text-red-600">{adminError}</div>}
           {adminLoading ? (
-            <div className="py-12 text-center text-gray-500">Loading admin accounts�</div>
+            <div className="py-12 text-center text-gray-500">กำลังโหลดบัญชีผู้ดูแลระบบ...</div>
           ) : (
             <>
               <UserTable users={adminUsers} onEdit={handleEditAdmin} onDelete={handleDeleteAdmin} />
@@ -267,7 +267,7 @@ export default function UserManagement() {
         <>
           {memberError && <div className="text-red-600">{memberError}</div>}
           {memberLoading ? (
-            <div className="py-12 text-center text-gray-500">Loading members�</div>
+            <div className="py-12 text-center text-gray-500">กำลังโหลดสมาชิก...</div>
           ) : (
             <>
               <MemberTable

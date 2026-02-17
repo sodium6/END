@@ -48,7 +48,7 @@ async function sendOtpEmail({ to, stId, otp }) {
   const info = await tx.sendMail({ from: MAIL_FROM, to, subject, html });
   if (EMAIL_DEBUG) {
     const url = nodemailer.getTestMessageUrl(info);
-    if (url) console.log('[OTP] preview URL:', url);
+    // if (url) console.log('[OTP] preview URL:', url);
   }
 }
 

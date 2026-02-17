@@ -3,21 +3,21 @@ import React from 'react';
 const statusLabel = (status) => {
   switch (status) {
     case 'pending':
-      return { text: 'Pending', className: 'bg-yellow-100 text-yellow-800' };
+      return { text: 'รอการอนุมัติ', className: 'bg-yellow-100 text-yellow-800' };
     case 'active':
-      return { text: 'Active', className: 'bg-green-100 text-green-800' };
+      return { text: 'ใช้งานอยู่', className: 'bg-green-100 text-green-800' };
     case 'suspended':
-      return { text: 'Suspended', className: 'bg-red-100 text-red-800' };
+      return { text: 'ถูกระงับ', className: 'bg-red-100 text-red-800' };
     case 'rejected':
-      return { text: 'Rejected', className: 'bg-gray-200 text-gray-700' };
+      return { text: 'ถูกปฏิเสธ', className: 'bg-gray-200 text-gray-700' };
     default:
-      return { text: status || 'Unknown', className: 'bg-gray-100 text-gray-700' };
+      return { text: status || 'ไม่รู้จัก', className: 'bg-gray-100 text-gray-700' };
   }
 };
 
 const MemberTable = ({ members, onChangeStatus, onResetPassword, onDelete }) => {
   if (!members || members.length === 0) {
-    return <div className="py-12 text-center text-gray-500">No members found.</div>;
+    return <div className="py-12 text-center text-gray-500">ไม่พบสมาชิก</div>;
   }
 
   const renderStatusActions = (member) => {
@@ -29,7 +29,7 @@ const MemberTable = ({ members, onChangeStatus, onResetPassword, onDelete }) => 
           onClick={() => onChangeStatus(member.id, 'active')}
           className="px-3 py-1.5 rounded border text-green-600 hover:bg-green-50"
         >
-          Approve
+          อนุมัติ
         </button>
       );
     }
@@ -40,7 +40,7 @@ const MemberTable = ({ members, onChangeStatus, onResetPassword, onDelete }) => 
           onClick={() => onChangeStatus(member.id, 'suspended')}
           className="px-3 py-1.5 rounded border text-amber-600 hover:bg-amber-50"
         >
-          Suspend
+          ระงับ
         </button>
       );
     }
@@ -51,7 +51,7 @@ const MemberTable = ({ members, onChangeStatus, onResetPassword, onDelete }) => 
           onClick={() => onChangeStatus(member.id, 'active')}
           className="px-3 py-1.5 rounded border text-blue-600 hover:bg-blue-50"
         >
-          Activate
+          เปิดใช้งาน
         </button>
       );
     }
@@ -62,7 +62,7 @@ const MemberTable = ({ members, onChangeStatus, onResetPassword, onDelete }) => 
         onClick={() => onResetPassword(member.id)}
         className="px-3 py-1.5 rounded border text-indigo-600 hover:bg-indigo-50"
       >
-        Reset Password
+        รีเซ็ตรหัสผ่าน
       </button>
     );
 
@@ -72,7 +72,7 @@ const MemberTable = ({ members, onChangeStatus, onResetPassword, onDelete }) => 
         onClick={() => onDelete(member.id)}
         className="px-3 py-1.5 rounded border text-red-600 hover:bg-red-50"
       >
-        Delete
+        ลบ
       </button>
     );
 
@@ -84,13 +84,13 @@ const MemberTable = ({ members, onChangeStatus, onResetPassword, onDelete }) => 
       <table className="min-w-full text-sm">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-4 py-3 text-left font-semibold">Name (TH)</th>
-            <th className="px-4 py-3 text-left font-semibold">Student ID</th>
-            <th className="px-4 py-3 text-left font-semibold">Email</th>
-            <th className="px-4 py-3 text-left font-semibold">Education</th>
-            <th className="px-4 py-3 text-left font-semibold">Status</th>
-            <th className="px-4 py-3 text-left font-semibold">Created</th>
-            <th className="px-4 py-3 text-left font-semibold">Approved</th>
+            <th className="px-4 py-3 text-left font-semibold">ชื่อ (ไทย)</th>
+            <th className="px-4 py-3 text-left font-semibold">รหัสนักศึกษา</th>
+            <th className="px-4 py-3 text-left font-semibold">อีเมล</th>
+            <th className="px-4 py-3 text-left font-semibold">การศึกษา</th>
+            <th className="px-4 py-3 text-left font-semibold">สถานะ</th>
+            <th className="px-4 py-3 text-left font-semibold">สร้างเมื่อ</th>
+            <th className="px-4 py-3 text-left font-semibold">อนุมัติเมื่อ</th>
             <th className="px-4 py-3"></th>
           </tr>
         </thead>

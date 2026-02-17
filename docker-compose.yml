@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: end_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: rmutk
+    ports:
+      - "3306:3306"
+    volumes:
+      - "./rmutk (4).sql:/docker-entrypoint-initdb.d/init.sql"
+    command: --default-authentication-plugin=mysql_native_password
+
+  server:
+    build: ./server
+    container_name: end_server
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./server/uploads:/app/uploads
+      - ./server/src:/app/src # Mount source for easier dev edits without rebuild
+    environment:
+      - PORT=3000
+      - DB_HOST=mysql
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=rmutk
+      - JWT_SECRET=BigBlackHole
+      - PUBLIC_BASE_URL=http://localhost:3000
+      - SMTP_HOST=smtp-relay.brevo.com
+      - SMTP_PORT=587
+      - SMTP_SECURE=false
+      - SMTP_USER=983965001@smtp-brevo.com
+      - SMTP_PASS=${SMTP_PASS}
+      - MAIL_FROM="TestBigBlackHole <archetypesodium@gmail.com>"
+      - EMAIL_DEBUG=true
+    depends_on:
+      - mysql
+
+  client:
+    build: ./client
+    container_name: end_client
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE=http://localhost:3000/api
+    depends_on:
+      - server

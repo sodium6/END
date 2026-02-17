@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { logoutUser, getProfile } from "../../services/authApi";
+import { logoutUser, getProfile, deleteAccount } from "../../services/authApi";
+import { User, Settings, Lock, LogOut, Trash2, ChevronDown, ChevronUp, Briefcase } from 'lucide-react';
 
 export default function Sidebar() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showMenu, setShowMenu] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -15,6 +17,12 @@ export default function Sidebar() {
     };
 
     const fetchProfile = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
       try {
         const payload = await getProfile(); // ✅ ได้ data ตรง ๆ เลย
         const u = payload?.user ?? payload;
@@ -30,12 +38,12 @@ export default function Sidebar() {
             u.fullName ||               // ✅ ใช้ fullName จาก BE
             u.name ||                   // เผื่อ BE ส่ง name
             u.email ||
-          "ผู้ใช้",
+            "ผู้ใช้",
           stid: u.st_id || fmtStid(u.st_id_canonical),
           initial:
-            u.first_name_th?.charAt(0) ||
             u.first_name_en?.charAt(0) ||
             "น",
+          profile_pic: u.profile_pic,
         });
       } catch (err) {
         console.error("โหลดโปรไฟล์ล้มเหลว:", err);
@@ -46,11 +54,24 @@ export default function Sidebar() {
     };
 
     fetchProfile();
+    window.addEventListener('user-profile-updated', fetchProfile);
+    return () => window.removeEventListener('user-profile-updated', fetchProfile);
   }, []);
 
   const handleLogout = async () => {
-    await logoutUser(); 
+    await logoutUser();
     navigate("/sign-in");
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm("⚠️ คำเตือน: คุณแน่ใจหรือไม่ที่จะลบบัญชี?")) return;
+    try {
+      await deleteAccount();
+      alert("ลบบัญชีเรียบร้อย");
+      navigate("/sign-in");
+    } catch (e) {
+      alert("ลบบัญชีไม่สำเร็จ");
+    }
   };
 
   return (
@@ -96,17 +117,45 @@ export default function Sidebar() {
               to="/dashboard"
               className="w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100"
             >
-              <span className="text-sm">Dashboard</span>
+              <span className="text-sm">หน้าแดชน์บอร์ด</span>
             </Link>
           </li>
+
+
+          {/* Portfolio Group */}
           <li>
-            <Link
-              to="/my-portfolio"
-              className="w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100"
-            >
-              <span className="text-sm">My Portfolio</span>
-            </Link>
+            <div className="space-y-1">
+              <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                Portfolio
+              </div>
+              <Link
+                to="/portfolio/activities"
+                className="w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100"
+              >
+                {/* <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> */}
+                <span className="text-sm">กิจกรรม (Activities)</span>
+              </Link>
+              <Link
+                to="/portfolio/work-experience"
+                className="w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100"
+              >
+                <span className="text-sm">ประสบการณ์การทำงาน (Work)</span>
+              </Link>
+              <Link
+                to="/portfolio/sports"
+                className="w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100"
+              >
+                <span className="text-sm">กีฬา (Sports)</span>
+              </Link>
+              <Link
+                to="/portfolio/certificates"
+                className="w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100"
+              >
+                <span className="text-sm">เกียรติบัตร (Certificates)</span>
+              </Link>
+            </div>
           </li>
+
           <li>
             <Link
               to="/public-relations"
@@ -120,58 +169,76 @@ export default function Sidebar() {
               to="/template/view"
               className="w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100"
             >
-              <span className="text-sm">template</span>
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/certificate"
-              className="w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-md text-slate-600 hover:bg-slate-100"
-            >
-              <span className="text-sm">certificate</span>
+              <span className="text-sm">เทมเพลต พอร์ตฟอลิโอ</span>
             </Link>
           </li>
 
-       
+
+
+
         </ul>
       </nav>
 
-      {/* Footer */}
-      <div className="mt-auto border-t border-slate-200">
-        <div className="border-b border-slate-200 bg-slate-50/30 p-3">
-          <div className="flex items-center px-3 py-2 rounded-md bg-white">
-            <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center">
-              <span className="text-slate-700 font-medium text-sm">
-                {loading ? "…" : user?.initial || "?"}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0 ml-2.5">
-              <p className="text-sm font-medium text-slate-800 truncate">
-                {loading ? "กำลังโหลด..." : user?.displayName || "ไม่พบข้อมูลผู้ใช้"}
-              </p>
-              <p className="text-xs text-slate-500 truncate">
-                {loading
-                  ? "กำลังโหลด..."
-                  : user?.stid
-                  ? `รหัสนักศึกษา: ${user.stid}`
-                  : "-"}
-              </p>
-            </div>
-            <div
-              className="w-2 h-2 bg-green-500 rounded-full ml-2"
-              title="ออนไลน์"
-            ></div>
-          </div>
-        </div>
+      {/* Footer User Menu */}
+      <div className="mt-auto border-t border-slate-200 relative p-3">
 
-        <div className="p-3">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-md text-red-600 hover:bg-red-50"
-          >
-            <span>ออกจากระบบ</span>
-          </button>
-        </div>
+        {/* Dropdown Popup (Above Footer) */}
+        {showMenu && (
+          <div className="absolute bottom-full left-3 right-3 mb-2 bg-white rounded-xl shadow-lg border border-slate-100 py-2 animate-in fade-in slide-in-from-bottom-2 z-50">
+            <Link to="/profile" className="flex items-center space-x-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 transition-colors">
+              <User size={18} />
+              <span className="text-sm">ข้อมูลส่วนตัว</span>
+            </Link>
+            <Link to="/profile" className="flex items-center space-x-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 transition-colors">
+              <Settings size={18} />
+              <span className="text-sm">ตั้งค่าโปรไฟล์</span>
+            </Link>
+            <Link to="/reset-password" className="flex items-center space-x-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 transition-colors">
+              <Lock size={18} />
+              <span className="text-sm">เปลี่ยนรหัสผ่าน</span>
+            </Link>
+            <button onClick={handleDeleteAccount} className="w-full flex items-center space-x-3 px-4 py-2.5 text-red-600 hover:bg-red-50 transition-colors text-left">
+              <Trash2 size={18} />
+              <span className="text-sm">ลบบัญชีผู้ใช้งาน</span>
+            </button>
+            <div className="h-px bg-slate-100 my-1"></div>
+            <button onClick={handleLogout} className="w-full flex items-center space-x-3 px-4 py-2.5 text-red-600 hover:bg-red-50 transition-colors text-left">
+              <LogOut size={18} />
+              <span className="text-sm">ออกจากระบบ</span>
+            </button>
+          </div>
+        )}
+
+        {/* Toggle Button */}
+        <button
+          onClick={() => setShowMenu(!showMenu)}
+          className={`w-full flex items-center p-2 rounded-xl border transition-all duration-200 
+            ${showMenu ? 'bg-green-50 border-green-200 shadow-sm' : 'bg-white border-slate-200 hover:border-green-300 hover:shadow-sm'}
+          `}
+        >
+          <div className="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center shrink-0 border border-slate-200 overflow-hidden">
+            {user?.profile_pic ? (
+              <img
+                src={`${import.meta.env.VITE_API_BASE.replace('/api', '')}${user.profile_pic}`}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-slate-600 font-bold text-xs">{loading ? "..." : user?.initial || "U"}</span>
+            )}
+          </div>
+          <div className="flex-1 min-w-0 ml-3 text-left">
+            <p className="text-sm font-semibold text-slate-800 truncate">
+              {loading ? "กำลังโหลด..." : user?.displayName || "ผู้ใช้"}
+            </p>
+            <p className="text-xs text-slate-500 truncate">
+              {user?.stid ? `รหัส: ${user.stid}` : "นักศึกษา"}
+            </p>
+          </div>
+          <div className={`ml-2 text-slate-400 transition-transform duration-200 ${showMenu ? 'rotate-180' : ''}`}>
+            <ChevronUp size={16} />
+          </div>
+        </button>
       </div>
     </div>
   );

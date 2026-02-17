@@ -89,6 +89,44 @@ const login = async (req, res) => {
   }
 };
 
+// @desc    Delete admin account (Self)
+// @route   DELETE /api/admin/auth/me
+// @access  Private
+const deleteAdmin = async (req, res) => {
+  try {
+    const authHeader = req.headers["authorization"];
+    if (!authHeader) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const token = authHeader.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+
+    // Delete admin
+    // Note: In a real system, might want to prevent deleting the last superadmin.
+    const [result] = await pool.execute("DELETE FROM admins WHERE admin_id = ?", [decoded.id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Admin account not found" });
+    }
+
+    res.json({ message: "ลบบัญชีผู้ดูแลระบบเรียบร้อยแล้ว" });
+  } catch (err) {
+    console.error("Delete Admin error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   login,
+  deleteAdmin
 };

@@ -51,7 +51,7 @@ async function ensureExistingAccount({ username, passwordHash, role, email, full
 class Admin {
   static async ensureDefaultSuperAdmin() {
     const username = process.env.DEFAULT_ADMIN_USERNAME || 'superadmin';
-    const password = process.env.DEFAULT_ADMIN_PASSWORD || 'SuperAdmin#123';
+    const password = process.env.DEFAULT_ADMIN_PASSWORD || '123456789';
     const email = process.env.DEFAULT_ADMIN_EMAIL || 'superadmin@example.com';
     const fullName = process.env.DEFAULT_ADMIN_NAME || 'System Super Admin';
     const role = 'superadmin';
@@ -148,14 +148,14 @@ class Admin {
   static async createTable() {
     try {
       await pool.execute('SELECT 1');
-      console.log('[Admin] Database connection successful');
+      // console.log('[Admin] Database connection successful');
 
       const [tables] = await pool.execute("SHOW TABLES LIKE 'admins'");
       if (tables.length > 0) {
-        console.log('[Admin] Admins table exists, ensuring schema is up to date...');
+        // console.log('[Admin] Admins table exists, ensuring schema is up to date...');
 
         await pool.execute('ALTER TABLE admins MODIFY COLUMN admin_id INT UNSIGNED AUTO_INCREMENT');
-        console.log('[Admin] Ensured admins.admin_id is INT UNSIGNED');
+        // console.log('[Admin] Ensured admins.admin_id is INT UNSIGNED');
 
         const [cols] = await pool.execute(
           "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'admins'"
@@ -189,7 +189,7 @@ class Admin {
         if (alterStatements.length > 0) {
           const sql = `ALTER TABLE admins ${alterStatements.join(', ')}`;
           await pool.execute(sql);
-          console.log('[Admin] Added missing columns on admins table');
+          // console.log('[Admin] Added missing columns on admins table');
         }
 
         return;
@@ -211,7 +211,7 @@ class Admin {
       `;
 
       await pool.execute(createTableSQL);
-      console.log('[Admin] Admin table created successfully');
+      // console.log('[Admin] Admin table created successfully');
     } catch (error) {
       console.error('[Admin] Database table creation failed:', error.message);
       throw error;

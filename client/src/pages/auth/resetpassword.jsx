@@ -1,7 +1,7 @@
 // src/pages/auth/ResetPassword.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { requestOtp, verifyOtp, resetPassword } from "../../services/authApi";
+import { requestOtp, verifyResetOtp, resetPassword } from "../../services/authApi";
 import { KeyRound, Mail, Lock, CheckCircle, AlertCircle } from "lucide-react";
 
 export default function ResetPassword() {
@@ -56,7 +56,7 @@ export default function ResetPassword() {
     }
     setLoading(true);
     try {
-      const data = await verifyOtp(stId.trim(), v);
+      const data = await verifyResetOtp(stId.trim(), v);
       setResetToken(data.reset_token);
       setMsg("ยืนยัน OTP สำเร็จ กรุณาตั้งรหัสผ่านใหม่");
       setStep(3);

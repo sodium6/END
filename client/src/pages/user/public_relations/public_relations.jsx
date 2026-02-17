@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { getNews, getNewsById , subscribe } from "../../../services/newsApi";
+import { getNews, getNewsById, subscribe } from "../../../services/newsApi";
 
 const API_BASE =
   (typeof import.meta !== "undefined" &&
     import.meta.env &&
-    import.meta.env.VITE_API_BASE_URL) ||
+    import.meta.env.VITE_API_BASE) ||
   "";
 
 export default function PublicRelations() {
@@ -19,12 +19,12 @@ export default function PublicRelations() {
   const [submitted, setSubmitted] = useState(false);
   const [emailMsg, setEmailMsg] = useState("");
 
-  // helper: แปลงพาธรูปให้เป็น absolute url
   const absUrl = (maybeUrl) => {
     if (!maybeUrl) return "";
     if (/^https?:\/\//i.test(maybeUrl)) return maybeUrl;
-    // ถ้า backend ส่งเป็น /uploads/... ให้ต่อ base
-    const base = API_BASE || window.location.origin;
+    // Strip '/api' from the base URL if present, as uploads are served from root
+    // VITE_API_BASE is http://localhost:3000/api, we need http://localhost:3000
+    const base = (API_BASE || window.location.origin).replace(/\/api\/?$/, "");
     return `${base}${maybeUrl}`;
   };
 
@@ -89,9 +89,9 @@ export default function PublicRelations() {
   const fmtDate = (d) =>
     d
       ? new Date(d).toLocaleString("th-TH", {
-          dateStyle: "medium",
-          timeStyle: "short",
-        })
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
       : "-";
 
 
@@ -126,14 +126,14 @@ export default function PublicRelations() {
         </h2>
 
         <div className="space-y-4">
-          {newsList.map((news) => {
+          {newsList.map((news, index) => {
             const imgSrc =
               news.featured_image_full ||
               absUrl(news.featured_image_url) ||
               "";
             return (
               <article
-                key={news.news_id}
+                key={news.news_id || index}
                 className="p-4 bg-white shadow rounded-lg border border-gray-200"
               >
                 <header className="flex items-start justify-between gap-3">
@@ -182,15 +182,15 @@ export default function PublicRelations() {
           </p>
           {(newsById.featured_image_full ||
             absUrl(newsById.featured_image_url)) && (
-            <img
-              src={
-                newsById.featured_image_full ||
-                absUrl(newsById.featured_image_url)
-              }
-              alt={newsById.title}
-              className="w-full rounded-lg mb-4"
-            />
-          )}
+              <img
+                src={
+                  newsById.featured_image_full ||
+                  absUrl(newsById.featured_image_url)
+                }
+                alt={newsById.title}
+                className="w-full rounded-lg mb-4"
+              />
+            )}
           <p className="whitespace-pre-line text-gray-700">
             {newsById.content}
           </p>
@@ -230,9 +230,8 @@ export default function PublicRelations() {
 
         {emailMsg && (
           <p
-            className={`mt-3 text-sm ${
-              submitted ? "text-green-600" : "text-red-600"
-            }`}
+            className={`mt-3 text-sm ${submitted ? "text-green-600" : "text-red-600"
+              }`}
           >
             {emailMsg}
           </p>

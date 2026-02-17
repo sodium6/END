@@ -42,7 +42,7 @@ export default function EmailBroadcastPage() {
       setHistory(data || []);
       setTotal(total || 0);
     } catch (error) {
-      setHistoryError(error?.message || 'Failed to load email broadcast history.');
+      setHistoryError(error?.message || 'ไม่สามารถโหลดประวัติการส่งอีเมลประกาศได้');
     } finally {
       setHistoryLoading(false);
     }
@@ -67,12 +67,12 @@ export default function EmailBroadcastPage() {
         payload.customRecipients = form.customRecipients;
       }
       const result = await adminApi.sendEmailBroadcast(payload);
-      setSuccessMessage(`Email broadcast sent to ${result.recipientCount} recipients.`);
+      setSuccessMessage(`ส่งอีเมลประกาศถึงผู้รับ ${result.recipientCount} คนแล้ว`);
       setForm({ subject: '', body: '', audience: 'all', customRecipients: '' });
       setPage(1);
       fetchHistory();
     } catch (error) {
-      setErrorMessage(error?.response?.data?.message || error?.message || 'Failed to send email broadcast.');
+      setErrorMessage(error?.response?.data?.message || error?.message || 'ไม่สามารถส่งอีเมลประกาศได้');
     } finally {
       setSending(false);
     }
@@ -80,9 +80,23 @@ export default function EmailBroadcastPage() {
 
   const renderStatus = (status) => {
     const className = statusBadgeClasses[status] || 'bg-gray-100 text-gray-700';
+    let translatedStatus = status;
+    switch (status) {
+      case 'sent':
+        translatedStatus = 'ส่งแล้ว';
+        break;
+      case 'pending':
+        translatedStatus = 'รอดำเนินการ';
+        break;
+      case 'failed':
+        translatedStatus = 'ล้มเหลว';
+        break;
+      default:
+        translatedStatus = status;
+    }
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${className}`}>
-        {status}
+        {translatedStatus}
       </span>
     );
   };
@@ -92,9 +106,9 @@ export default function EmailBroadcastPage() {
   return (
     <div className="p-6 space-y-6">
       <header>
-        <h1 className="text-2xl font-bold mb-2">Email Broadcast</h1>
+        <h1 className="text-2xl font-bold mb-2">การส่งอีเมลประกาศ</h1>
         <p className="text-sm text-gray-600">
-          Send announcements to members via email. Only active users will be targeted when sending to all recipients.
+          ส่งประกาศถึงสมาชิกทางอีเมล เฉพาะผู้ใช้ที่ใช้งานอยู่เท่านั้นที่จะได้รับเมื่อส่งถึงผู้รับทั้งหมด
         </p>
       </header>
 
@@ -118,14 +132,14 @@ export default function EmailBroadcastPage() {
 
       <section className="space-y-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <h2 className="text-lg font-semibold">Broadcast history</h2>
+          <h2 className="text-lg font-semibold">ประวัติการส่งประกาศ</h2>
           <input
             value={search}
             onChange={(event) => {
               setPage(1);
               setSearch(event.target.value);
             }}
-            placeholder="Search by subject"
+            placeholder="ค้นหาด้วยหัวข้อ"
             className="w-full md:w-64 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         </div>
@@ -137,30 +151,30 @@ export default function EmailBroadcastPage() {
         )}
 
         {historyLoading ? (
-          <div className="py-12 text-center text-gray-500">Loading history�</div>
+          <div className="py-12 text-center text-gray-500">กำลังโหลดประวัติ...</div>
         ) : history.length === 0 ? (
-          <div className="py-12 text-center text-gray-500">No email broadcasts have been sent yet.</div>
+          <div className="py-12 text-center text-gray-500">ยังไม่มีการส่งอีเมลประกาศ</div>
         ) : (
           <div className="overflow-hidden rounded-lg border border-gray-200">
             <table className="min-w-full divide-y divide-gray-200 text-sm">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Subject</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Audience</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Recipients</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Status</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Sent at</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">หัวข้อ</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">ผู้รับ</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">จำนวนผู้รับ</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">สถานะ</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">ส่งเมื่อ</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
                 {history.map((item) => (
                   <tr key={item.broadcast_id}>
                     <td className="px-4 py-3 font-medium text-gray-900">{item.subject}</td>
-                    <td className="px-4 py-3 text-gray-700 capitalize">{item.audience}</td>
+                    <td className="px-4 py-3 text-gray-700 capitalize">{item.audience === 'all' ? 'ทั้งหมด' : item.audience === 'custom' ? 'กำหนดเอง' : item.audience}</td>
                     <td className="px-4 py-3 text-gray-700">{item.recipient_count}</td>
                     <td className="px-4 py-3 text-gray-700">{renderStatus(item.status)}</td>
                     <td className="px-4 py-3 text-gray-700">
-                      {item.sent_at ? new Date(item.sent_at).toLocaleString() : '�'}
+                      {item.sent_at ? new Date(item.sent_at).toLocaleString() : '-'}
                     </td>
                   </tr>
                 ))}
@@ -171,7 +185,7 @@ export default function EmailBroadcastPage() {
 
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-500">
-            Total {total} records � Page {page} of {totalPages}
+            ทั้งหมด {total} รายการ  หน้า {page} จาก {totalPages}
           </span>
           <div className="flex gap-2">
             <button
@@ -179,14 +193,14 @@ export default function EmailBroadcastPage() {
               onClick={() => setPage((prev) => Math.max(1, prev - 1))}
               className="rounded border px-3 py-1.5 text-sm disabled:opacity-50"
             >
-              Previous
+              ก่อนหน้า
             </button>
             <button
               disabled={page >= totalPages}
               onClick={() => setPage((prev) => prev + 1)}
               className="rounded border px-3 py-1.5 text-sm disabled:opacity-50"
             >
-              Next
+              ถัดไป
             </button>
           </div>
         </div>
