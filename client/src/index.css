@@ -1,0 +1,92 @@
+@import 'tailwindcss';
+
+* {
+  font-family: 'Noto Sans Thai', sans-serif;
+}
+
+/* Input */
+.input-field {
+  @apply border border-gray-300 rounded-lg focus:outline-none focus:ring-2 
+  focus:ring-[#5932EA] transition text-gray-700;
+}
+
+.input-search {
+  @apply p-2 focus:outline-none text-base text-gray-700;
+}
+
+.input-checkbox {
+  @apply appearance-none h-5 w-5 bg-white border border-gray-300 rounded-md 
+      checked:bg-[#5932EA] checked:border-transparent 
+      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5932EA] 
+      cursor-pointer transition-colors duration-200 relative;
+}
+
+.input-checkbox::after {
+  content: '';
+  position: absolute;
+  display: none;
+  top: 3px;
+  left: 6px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.input-checkbox:checked::after {
+  display: block;
+}
+
+/* Button */
+.success-btn {
+  @apply px-5 py-2 rounded-lg bg-[#5932EA] text-white font-semibold
+    hover:bg-[#4a2bbd] transition duration-200 ease-in-out;
+}
+
+.cancel-btn {
+  @apply px-5 py-2 rounded-lg bg-gray-100 text-gray-700 font-semibold
+   hover:bg-gray-200 transition duration-200 ease-in-out;
+}
+
+/* Table */
+.table {
+  @apply cursor-default min-w-full table-auto rounded-xl;
+}
+
+.thead-table {
+  @apply text-left text-sm text-gray-700;
+}
+
+.tbody-table {
+  @apply text-sm text-gray-800;
+}
+
+.tr-table {
+  @apply border-b border-gray-100 hover:bg-gray-50 transition;
+}
+
+.th-table {
+  @apply px-4 py-3 font-medium text-[#B5B7C0];
+}
+
+.td-table {
+  @apply px-4 py-3 border-b border-gray-100;
+}
+
+.span-table {
+  @apply inline-flex items-center justify-center px-3 py-1 text-sm font-medium rounded-full;
+}
+
+.responsive-table-wrapper {
+  @apply overflow-x-auto;
+}
+
+.tr-table:last-child .td-table {
+  @apply border-b-0;
+}
+
+/* Other */
+.article {
+  @apply bg-white rounded-xl p-6 md:p-8 border border-gray-100;
+}
